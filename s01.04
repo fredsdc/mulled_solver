@@ -1,0 +1,8 @@
+-- Puzzle: "  o |__xo|  - " --
+-- Solução: --
+0     1     2     3
+
+  o     -     -     -
+--xo  --oo  -oo-  oo--
+  -     x     x     x
+

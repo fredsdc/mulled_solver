@@ -1,0 +1,9 @@
+-- Puzzle: "-    |oox__|x Ox-|oox__" --
+-- Solução: --
+0      1      2      3      4      5      6      7      8      9      10     11     12     13     14     15     16     17     18     19     20
+
+-      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -
+oox--  oox--  ooxo-  -ooxo  -o-xo  -o-xo  --oxo  --oxo  --oxo  --oxo  --oxo  --oxo  --oxo  --oxo  --oxo  --oxo  ---xo  --xo-  --xo-  --x-o  --xoo
+x ox-  x -ox  x --x  x --x  x o-x  x -ox  x -ox  x --x  x --x  x o-x  x o-x  x -ox  x oox  x oox  x oox  x oox  x oox  x oox  x oox  x oox  x o-x
+oox--  oox--  oox--  oox--  oox--  oox--  oox--  ooxo-  -ooxo  -o-xo  --oxo  --oxo  ---xo  --xo-  -xo--  -x-o-  -xoo-  -xoo-  -x-oo  -x-oo  -x-oo
+

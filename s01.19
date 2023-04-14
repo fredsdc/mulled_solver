@@ -1,0 +1,8 @@
+-- Puzzle: "oxX_o|xxx-x|o_Xxo" --
+-- Solução: --
+0      1      2      3      4      5      6      7      8      9
+
+oxx-o  oxx-o  oxx-o  oxx-o  oxx-o  oxxoo  -xxoo  xxoo-  xxoo-  xxoo-
+xxx-x  xxx-x  xxxox  xxxox  xxxox  xxx-x  oxx-x  oxx-x  -oxxx  --xxx
+o-xxo  oxxo-  oxx--  -oxx-  --oxx  --oxx  x-oxx  x-oxx  x-oxx  xooxx
+

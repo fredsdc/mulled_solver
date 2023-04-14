@@ -1,0 +1,8 @@
+-- Puzzle: "oX-o | X x |----O" --
+-- Solução: --
+0      1      2      3      4
+
+ox-o   -oxo   --xo   -xo-   xo--
+ x x    x x    o x    o x    o x
+----o  ----o  -x--o  -x--o  -x--o
+

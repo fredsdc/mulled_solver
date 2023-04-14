@@ -1,0 +1,8 @@
+-- Puzzle: "o-xx-|x -  |ox__-" --
+-- Solução: --
+0      1      2      3      4      5      6      7
+
+o-xx-  o-xx-  o-xx-  o-xx-  -oxx-  --oxx  ---xx  ---xx
+x -    x -    x -    x -    x -    x -    x o    x -
+ox---  -ox--  --ox-  ---ox  ---ox  ---ox  ---ox  --oox
+

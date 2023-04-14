@@ -1,0 +1,9 @@
+-- Puzzle: "--xoo|_Xx  |_Xxoo|---  " --
+-- Solução: --
+0      1      2      3      4      5      6      7      8      9      10     11     12     13
+
+--xoo  -xoo-  -x-o-  -xo--  -xo--  -x---  -x---  -x---  -x---  xx---  xx---  xx---  xx---  xx---
+-xx    -xx    -xo    -xo    xo-    xoo    x-o    xo-    xo-    oo-    oo-    ooo    -oo    oo-
+-xxoo  -xxoo  -xxoo  -xxoo  -xxoo  -xxoo  -oxoo  -oxoo  oxoo-  -xoo-  xoo--  xo---  oo---  oo---
+---    ---    --x    --x    --x    --x    -xx    -xx    -xx    -xx    -xx    -xx    xxx    xxx
+

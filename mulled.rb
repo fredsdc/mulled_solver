@@ -21,7 +21,7 @@ def solve puzzle
   arry |= move(trans(puzzle).reverse).map{|s| trans(s.reverse)}
 end
 
-def trans(puzzle)
+def trans puzzle
   puzzle.split('|').map{|s| s.chars}.transpose.map{|s| s.join}.join('|')
 end
 
@@ -35,14 +35,18 @@ def recover_puzzle
   s
 end
 
-def show_solving(puzzle)
+def show_solving puzzle
   STDERR.puts "-- Problema: --"
+  STDERR.puts ""
   STDERR.puts [ puzzle.gsub(/X/,"x").gsub(/O/,"o").gsub(/_/,"-").split("|"),
          puzzle.gsub(/[xo]/,"-").gsub(/[XO_]/,"o").split("|") ].transpose.
        map{|l| l.join("  →  ").sub(/ *$/, "")}.join("\n")
+  STDERR.puts ""
 end
 
-def show_solution
+def show_solution puzzle
+  STDERR.puts ""
+  puts "-- Puzzle: \"#{puzzle}\" --"
   solution = [ Puzzle.where(solved: true).first ]
   while solution.first.id > 1
     solution = [ Puzzle.find(solution.first.ref) ] + solution
@@ -72,13 +76,34 @@ def show_solution
   end
 end
 
-def iteractions ( puzzle )
-  i=0
-  while puzzle.id > 1
-    i += 1
-    puzzle = Puzzle.find(puzzle.ref)
+# Dump memory database
+def dump_database filename, solved
+  if filename == ":memory:" && ! solved
+    filename = 'db_dump'
+    File.delete(filename) if File.exist?(filename)
   end
-  STDERR.puts "-- Iteractions: #{i.to_s} --"
+  if filename != ":memory:" && ::ActiveRecord::Base.connection_config[:database] == ":memory:"
+    ddb = SQLite3::Database.new(filename)
+    if ddb.table_info('puzzles').empty? || ddb.execute('select * from puzzles where solved="t"').empty?
+      STDERR.puts "-- Gravando banco de dados --"
+      sdb = ::ActiveRecord::Base.connection.raw_connection
+      b = SQLite3::Backup.new(ddb, 'main', sdb, 'main')
+      b.step(-1)
+      b.finish
+    end
+  end
+end
+
+# Loads to memory database
+def load_database filename
+  if ::ActiveRecord::Base.connection_config[:database] == ":memory:"
+    STDERR.puts "-- Carregando banco de dados --"
+    sdb = ::ActiveRecord::Base.connection.raw_connection
+    ddb = SQLite3::Database.open(filename)
+    b = SQLite3::Backup.new(sdb, 'main', ddb, 'main')
+    b.step(-1)
+    b.finish
+  end
 end
 
 # Main program
@@ -91,33 +116,36 @@ filename = ':memory:'
 puzzle = nil
 deadends = []
 quiet = false
-interact = 0
-interact_index = 1
+nomemory = false
 
 opt = OptionParser.new do |parser|
-  parser.on('-h', '--help', 'Prints this help.') do |h|
+  parser.on('-h', '--help', 'Mostra este help.') do |h|
     puts parser
     exit
   end
 
-  parser.on('-d', '--db NAME', 'Database filename.') do |n|
+  parser.on('-d', '--db NAME', 'Nome do arquivo do banco de dados.') do |n|
     filename = n
   end
 
-  parser.on('-e', '--ends string', 'Array of the puzzle (x marks deadend positions).') do |e|
+  parser.on('-m', '--no-mem', 'Não usar o banco de dados em memória (ignorado se não houver nome de arquivo).') do |m|
+    nomemory = true
+  end
+
+  parser.on('-e', '--ends string', 'String para marcar espaços onde uma bola preta impede a solução.') do |e|
     deadends = e.enum_for(:scan,/x/).map{ Regexp.last_match.begin(0) }
   end
 
-  parser.on('-q', '--quiet', 'Quiet iteractions.') do |q|
+  parser.on('-q', '--quiet', 'Iterações quietas.') do |q|
     quiet = true
   end
 
-  parser.on('-p', '--puzzle string', 'Array of the puzzle (for new puzzles).
-        use "o" for white ball
-        use "x" for black ball
-        use "-" for empty space
-        use "|" for a new row
-        use "O", "X", "_" to indicate ending positions') do |h|
+  parser.on('-p', '--puzzle string', 'String que descreve o puzzle (para novos puzzles).
+        "o" para bola branca
+        "x" para bola preta
+        "-" para espaço livre
+        "|" para uma nova linha
+        "O", "X", "_" para indicar os objetivos') do |h|
     puzzle = h
   end
 end
@@ -128,8 +156,26 @@ rescue
   # do nothing
 end
 
+# Qual banco de dados?
+if filename != ":memory:"
+  ddb = SQLite3::Database.new(filename)
+  if nomemory || ddb.table_info('puzzles').present? && ddb.execute('select * from puzzles where solved="t"').present?
+    ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database  => filename)
+  else
+    ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database  => ':memory:')
+    load_database filename
+  end
+else
+  ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database  => filename)
+  # Continuar?
+  ddb = SQLite3::Database.new('db_dump')
+  if ddb.table_info('puzzles').present? && ddb.execute('select item from puzzles where id < 2') ==
+       [[puzzle.gsub(/[xo]/,"-").gsub(/[XO_]/,"o")], [puzzle.gsub(/X/, "x").gsub(/O/, "o").gsub(/_/, "-")]]
+    load_database 'db_dump'
+  end
+end
+
 # Cria banco de dados se são existir
-ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database  => filename)
 if ! ActiveRecord::Base.connection.table_exists? 'puzzles'
   STDERR.puts "-- Criando banco de dados --"
   ActiveRecord::Base.connection.execute("CREATE TABLE puzzles (id INTEGER PRIMARY KEY, ref INTEGER, item TEXT, solved BOOL);")
@@ -148,7 +194,7 @@ end
 # Popula o puzzle no banco de dados
 if Puzzle.first.nil?
   if puzzle.nil?
-    STDERR.puts 'No puzzle given!'
+    STDERR.puts "Não encontrei o puzzle!"
     opt.parse %w[--help]
   else
     STDERR.puts "-- Populando banco de dados --"
@@ -160,40 +206,56 @@ else
   puzzle = recover_puzzle
 end
 
+# Recupera qual iteração paramos
+unless quiet
+  iteract = 0
+  iteract_index = 1
+  while now = Puzzle.where("id != ? and ref >= ?", 1, iteract_index).first
+    iteract += 1
+    iteract_index = now.id
+    STDERR.puts "-- Iteração: #{iteract} (#{now.id - now.ref}) --"
+  end
+end
+
 # Feedback
 STDERR.puts "-- Calculando --"
 show_solving(puzzle)
-puts "-- Puzzle: \"#{puzzle}\" --"
 
 # Começa o cálculo
 sol      = Puzzle.first.item
-puzzle   = Puzzle.find(Puzzle.last.ref)
+current_puzzle   = Puzzle.find(Puzzle.last.ref)
 solved   = false
+
+Signal.trap('INT') {
+  dump_database filename, solved
+  exit
+}
 
 if Puzzle.where(solved: true).empty?
   # Main loop
   until solved do
-    solve(puzzle.item).each do |s|
+    solve(current_puzzle.item).each do |s|
       if sol == s.gsub(/x/,"-")
         solved = true
-        Puzzle.new(ref: puzzle.id, item: s, solved: solved).save
+        Puzzle.new(ref: current_puzzle.id, item: s, solved: solved).save
       else
         if Puzzle.where(:item => s).empty?
-          Puzzle.new(ref: puzzle.id, item: s, solved: false).save
+          Puzzle.new(ref: current_puzzle.id, item: s, solved: false).save
         end
       end
       unless quiet
-        if puzzle.id >= interact_index
-          interact += 1
-          interact_index = Puzzle.last.id
-          STDERR.puts "-- Iteraction: #{interact} (#{interact_index - puzzle.id}) --"
+        if current_puzzle.id >= iteract_index
+          iteract += 1
+          iteract_index = Puzzle.last.id
+          STDERR.puts "-- Iteração: #{iteract} (#{iteract_index - current_puzzle.id}) --"
         end
       end
     end
     begin
-      puzzle = puzzle.next
-    end while deadends.map{|n| puzzle.item[n] == "x"}.any?
+      current_puzzle = current_puzzle.next
+    end while deadends.map{|n| current_puzzle.item[n] == "x"}.any?
   end
 end
 
-show_solution
+show_solution puzzle
+dump_database filename, solved

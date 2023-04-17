@@ -1,0 +1,10 @@
+-- Puzzle: "-----|xxoxx|oxxxo|xxxxx|-___-" --
+-- Solução: --
+0      1      2      3      4      5      6      7      8      9      10     11     12
+
+-----  -----  -----  ----x  ----x  ----x  ----x  ----x  ----x  ----x  ----x  ----x  ----x
+xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx
+oxxxo  oxxx-  -oxxx  -oxxo  --xxo  -xxo-  xxo--  xxo--  xxo--  xxo--  xx---  xx---  xx---
+xxxxx  xxxxo  xxxxo  xxxx-  xoxx-  xoxx-  xoxx-  x-oxx  x-oxx  x-oxx  x-oxx  x-oxx  x--xx
+-----  ----x  ----x  ----x  -x--x  -x--x  -x--x  -x--x  -xo-x  xo--x  xoo-x  xo-ox  xooox
+

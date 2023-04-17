@@ -1,0 +1,10 @@
+-- Puzzle: "o o o|x_x_x|OxXxO|x_x_x|o - o" --
+-- Solução: --
+0      1      2      3      4      5      6      7      8      9      10     11     12     13     14     15     16     17     18     19     20
+
+o o o  o - o  o - o  o - o  o - o  o - o  o - o  o - o  o - o  - - o  - - o  - - o  - - o  x - o  x - o  x - o  x - -  x - -  x - -  x - -  x - -
+x-x-x  x-o-x  xo--x  x---x  xo--x  xo--x  xo--x  xo--x  xo--x  oo--x  -oo-x  -o-ox  xo-ox  xo-ox  xo-ox  xoxox  xoxoo  xoxo-  xoxo-  xoxo-  xoxo-
+oxxxo  oxxxo  oxxxo  ooxxo  o-xxo  oxxo-  oxxox  oxx-x  -oxxx  xoxxx  xoxxx  xoxxx  xoxxx  ooxxx  ooxxx  oooxx  oooxx  oooxo  -ooxo  o-oxo  o-oxo
+x-x-x  x-x-x  x-x-x  xxx-x  xxx-x  xxx-x  xxx-o  xxxoo  xxxoo  xxxoo  xxxoo  xxxoo  oxxoo  -xxoo  xxoo-  xx-o-  xx-ox  xx-ox  ox-ox  ox-ox  -oxox
+o - o  o x o  o x o  o x o  o x o  o x o  o x -  o x -  o x -  o x -  o x -  o x -  - x -  - x -  - x -  - x -  - x -  - x x  x x x  x x x  x x x
+

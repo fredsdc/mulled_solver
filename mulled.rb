@@ -2,6 +2,28 @@
 
 # Functions
 
+def fixed_deadends sol
+  arry = {}
+  arry[0] = sol.match?(/^o/) ? sol.gsub(/o/, "-").sub(/^-/, "x") : nil
+  arry[1] = sol.match?(/^-o/) ? sol.gsub(/o/, "-").sub(/^--/, "xx") : nil if arry[0].nil?
+  arry[2] = sol.match?(/^-[^|]*\|o/) ? sol.gsub(/o/, "-").sub(/-/, "x").sub(/\|-/, "|x") : nil if arry[0].nil?
+  arry[3] = sol.match?(/^--o/) ? sol.gsub(/o/, "-").sub(/^--o/, "xxx") : nil if arry[1].nil?
+  arry[4] = sol.match?(/^-[^|]*\|-[^|]*\|o/) ? sol.gsub(/o/, "-").sub(/-/, "x").sub(/\|-/, "|x").sub(/\|-/, "|x") : nil if arry[2].nil?
+  arry[5] = sol.match?(/^--[^|]*\|-o/) ? sol.gsub(/o/, "-").sub(/--/, "xx").sub(/\|--/, "|xx") : nil if arry[1].nil? && arry[2].nil?
+  arry[6] = sol.match?(/^---[^|]*\|--o/) ? sol.gsub(/o/, "-").sub(/---/, "xxx").sub(/\|---/, "|xxx") : nil if arry[3].nil? && arry[5].nil?
+  arry[7] = sol.match?(/^--[^|]*\|--[^|]*\|-o/) ? sol.gsub(/o/, "-").sub(/--/, "xx").sub(/\|--/, "|xx").sub(/\|--/, "|xx") : nil if arry[4].nil? && arry[5].nil?
+  arry[8] = sol.match?(/^---[^|]*\|---[^|]*\|--o/) ? sol.gsub(/o/, "-").sub(/---/, "xxx").sub(/\|---/, "|xxx").sub(/\|---/, "|xxx") : nil if arry[6].nil? && arry[7].nil?
+  arry.values.compact
+end
+
+def gen_fixed_deadends sol
+  arry  = fixed_deadends sol
+  arry |= fixed_deadends(sol.reverse).map{|s| s.reverse}
+  arry |= fixed_deadends(flip(sol)).map{|s| flip(s)}
+  arry |= fixed_deadends(flip(sol).reverse).map{|s| flip(s.reverse)}
+  arry.uniq.map{|s| s.gsub(/-/, ".")}
+end
+
 def move puzzle
   arry = []
   puzzle.size.times do |i|
@@ -25,10 +47,14 @@ def trans puzzle
   puzzle.split('|').map{|s| s.chars}.transpose.map{|s| s.join}.join('|')
 end
 
+def flip puzzle
+  puzzle.split('|').reverse.join('|')
+end
+
 def recover_puzzle
   s  = ""
-  c1 = Puzzle.find(0).item
-  c2 = Puzzle.find(1).item
+  c1 = Deadend.first.item
+  c2 = Puzzle.first.item
   c1.size.times do |i|
     s += c1[i] == "o" ? c2[i].sub(/x/,"X").sub(/o/,"O").sub(/-/,"_") : c2[i]
   end
@@ -51,9 +77,6 @@ def show_solution puzzle
   while solution.first.id > 1
     solution = [ Puzzle.find(solution.first.ref) ] + solution
   end
-
-  # puts solution.map.with_index{|i,index| "---------------\n" + index.to_s +
-  #   ":\n---------------\n" + i.item.gsub(/\|/,"\n")}.join("\n\n")
 
   puts "-- Solução: --"
   string = ""
@@ -78,14 +101,10 @@ end
 
 # Dump memory database
 def dump_database filename, solved
-  if filename == ":memory:" && ! solved
-    filename = 'db_dump'
-    File.delete(filename) if File.exist?(filename)
-  end
-  if filename != ":memory:" && ::ActiveRecord::Base.connection_config[:database] == ":memory:"
+  if ::ActiveRecord::Base.connection_config[:database] == ":memory:"
     ddb = SQLite3::Database.new(filename)
     if ddb.table_info('puzzles').empty? || ddb.execute('select * from puzzles where solved="t"').empty?
-      STDERR.puts "-- Gravando banco de dados --"
+      STDERR.puts "-- Gravando banco de dados #{filename} --"
       sdb = ::ActiveRecord::Base.connection.raw_connection
       b = SQLite3::Backup.new(ddb, 'main', sdb, 'main')
       b.step(-1)
@@ -94,7 +113,7 @@ def dump_database filename, solved
   end
 end
 
-# Loads to memory database
+# Loads database from file to memory
 def load_database filename
   if ::ActiveRecord::Base.connection_config[:database] == ":memory:"
     STDERR.puts "-- Carregando banco de dados --"
@@ -106,6 +125,20 @@ def load_database filename
   end
 end
 
+# Finds next available db_dump_# filename
+def db_dump_filename filename
+  if filename == ":memory:"
+    filename = 'db_dump_'
+    index=0
+    while File.exist?(filename + index.to_s)
+      index += 1
+    end
+    filename += index.to_s
+  end
+  File.open(filename, "a") {}
+  filename
+end
+
 # Main program
 
 require 'sqlite3'
@@ -115,9 +148,12 @@ require 'active_record'
 filename = ':memory:'
 puzzle = nil
 deadends = []
+deadends_fixed = []
 quiet = false
 nomemory = false
+noexec = false
 
+# Parse options
 opt = OptionParser.new do |parser|
   parser.on('-h', '--help', 'Mostra este help.') do |h|
     puts parser
@@ -128,12 +164,20 @@ opt = OptionParser.new do |parser|
     filename = n
   end
 
+  parser.on('-e', '--ends string', 'String para marcar espaços onde uma bola preta impede a solução.') do |e|
+    deadends = e.enum_for(:scan,/x/).map{ Regexp.last_match.begin(0) }
+  end
+
+  parser.on('-f', '--fixed-end string', 'Strings para marcar espaços onde uma bola preta impede a solução.') do |e|
+    deadends_fixed |= [ e.gsub(/[^.|oxOX_ -]/, '') ]
+  end
+
   parser.on('-m', '--no-mem', 'Não usar o banco de dados em memória (ignorado se não houver nome de arquivo).') do |m|
     nomemory = true
   end
 
-  parser.on('-e', '--ends string', 'String para marcar espaços onde uma bola preta impede a solução.') do |e|
-    deadends = e.enum_for(:scan,/x/).map{ Regexp.last_match.begin(0) }
+  parser.on('-n', '--no-exec', 'Não executer.') do |m|
+    noexec = true
   end
 
   parser.on('-q', '--quiet', 'Iterações quietas.') do |q|
@@ -169,8 +213,9 @@ else
   ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database  => filename)
   # Continuar?
   ddb = SQLite3::Database.new('db_dump')
-  if ddb.table_info('puzzles').present? && ddb.execute('select item from puzzles where id < 2') ==
-       [[puzzle.gsub(/[xo]/,"-").gsub(/[XO_]/,"o")], [puzzle.gsub(/X/, "x").gsub(/O/, "o").gsub(/_/, "-")]]
+  if ddb.table_info('puzzles').present? &&
+     [ ddb.execute('select item from deadends where id = 1') + ddb.execute('select item from puzzles where id = 1') ] ==
+     [[puzzle.gsub(/[xo]/,"-").gsub(/[XO_]/,"o")], [puzzle.gsub(/X/, "x").gsub(/O/, "o").gsub(/_/, "-")]]
     load_database 'db_dump'
   end
 end
@@ -179,7 +224,8 @@ end
 if ! ActiveRecord::Base.connection.table_exists? 'puzzles'
   STDERR.puts "-- Criando banco de dados --"
   ActiveRecord::Base.connection.execute("CREATE TABLE puzzles (id INTEGER PRIMARY KEY, ref INTEGER, item TEXT, solved BOOL);")
-  ActiveRecord::Base.connection.execute("CREATE INDEX item_index ON puzzles(item);")
+  ActiveRecord::Base.connection.execute("CREATE TABLE deadends (id INTEGER PRIMARY KEY, item TEXT);")
+  ActiveRecord::Base.connection.execute("CREATE UNIQUE INDEX item_index ON puzzles(item);")
 else
   STDERR.puts "-- Abrindo banco de dados --"
 end
@@ -191,6 +237,9 @@ class Puzzle < ActiveRecord::Base
   end
 end
 
+class Deadend < ActiveRecord::Base
+end
+
 # Popula o puzzle no banco de dados
 if Puzzle.first.nil?
   if puzzle.nil?
@@ -198,64 +247,98 @@ if Puzzle.first.nil?
     opt.parse %w[--help]
   else
     STDERR.puts "-- Populando banco de dados --"
-    Puzzle.new(id:0, ref: 0, item: puzzle.gsub(/[xo]/,"-").gsub(/[XO_]/,"o"), solved: false).save
-    Puzzle.new(id:1, ref: 1, item: puzzle.gsub(/X/, "x").gsub(/O/, "o").gsub(/_/, "-"), solved: false).save
+    Deadend.new(item: puzzle.gsub(/[xo]/,"-").gsub(/[XO_]/,"o")).save
+    Puzzle.new(ref: 1, item: puzzle.gsub(/X/, "x").gsub(/O/, "o").gsub(/_/, "-"), solved: false).save
   end
 else
-  STDERR.puts "-- Recuperando puzzle do banco de dados --"
+  STDERR.puts "-- Recuperando puzzle e deadends do banco de dados --"
   puzzle = recover_puzzle
+  deadends_fixed |= Deadend.all.pluck(:item).drop(1)
 end
 
 # Recupera qual iteração paramos
-unless quiet
+if ! quiet && ! noexec
   iteract = 0
   iteract_index = 1
-  while now = Puzzle.where("id != ? and ref >= ?", 1, iteract_index).first
+  while now = Puzzle.where("id > 1 and ref > ?", iteract_index).first
     iteract += 1
-    iteract_index = now.id
-    STDERR.puts "-- Iteração: #{iteract} (#{now.id - now.ref}) --"
+    STDERR.puts "-- Iteração: #{iteract} (#{now.id - 1 - iteract_index}) --"
+    iteract_index = now.id - 1
   end
+  STDERR.puts ""
+end
+
+# Declara variáveis
+sol             = Deadend.first.item
+current_puzzle  = Puzzle.find(Puzzle.last.ref)
+solved          = false
+deadends_fixed |= deadends.map{|n| (sol[0, n] + "x" + sol[n+1, sol.size]).gsub(/[-o]/, ".")} | gen_fixed_deadends(sol)
+filename        = db_dump_filename filename
+deadends_fixed.select!{|d| d.size == sol.size}
+t1              = Time.now
+
+# Grava deadends
+Deadend.delete_all
+Deadend.new(item: sol).save
+deadends_fixed.each do |d|
+  Deadend.new(item: d).save
 end
 
 # Feedback
-STDERR.puts "-- Calculando --"
+STDERR.puts "-- Puzzle: \"#{puzzle}\" --"
 show_solving(puzzle)
-
-# Começa o cálculo
-sol      = Puzzle.first.item
-current_puzzle   = Puzzle.find(Puzzle.last.ref)
-solved   = false
+if deadends_fixed.any?
+  STDERR.puts "-- Deadends: --"
+  STDERR.puts ""
+  STDERR.puts deadends_fixed.map{|s| s.split("|")}.transpose.map{|a| a.join("  ")}
+  STDERR.puts ""
+end
+exit if noexec
 
 Signal.trap('INT') {
   dump_database filename, solved
   exit
 }
 
+# Calcula novos itens
+STDERR.puts "-- Calculando --"
 if Puzzle.where(solved: true).empty?
+  deadends_fixed.map!{|s| s.gsub(/\|/, ".")}
+
   # Main loop
   until solved do
-    solve(current_puzzle.item).each do |s|
-      if sol == s.gsub(/x/,"-")
-        solved = true
-        Puzzle.new(ref: current_puzzle.id, item: s, solved: solved).save
-      else
-        if Puzzle.where(:item => s).empty?
-          Puzzle.new(ref: current_puzzle.id, item: s, solved: false).save
-        end
+    # Dump database each 200.000 ids
+    if current_puzzle.id % 200000 == 0
+      dump_database filename, solved
+    end
+
+    # Feedback, plus exists if too many iteractions
+    unless quiet
+      if current_puzzle.id > iteract_index
+        iteract += 1
+        iteract_index = Puzzle.last.id
+        STDERR.puts "-- Iteração: #{iteract} (#{iteract_index - current_puzzle.id + 1}) #{"%.2f" % - (t1 - (t1 = Time.now))}s --"
       end
-      unless quiet
-        if current_puzzle.id >= iteract_index
-          iteract += 1
-          iteract_index = Puzzle.last.id
-          STDERR.puts "-- Iteração: #{iteract} (#{iteract_index - current_puzzle.id}) --"
+      if iteract > 50
+        puts "Muitas iterações. Sem solução?"
+        exit
+      end
+    end
+
+    # Writes new not deadend states
+    solve(current_puzzle.item).each do |s|
+      unless deadends_fixed.map{|d| s.gsub(/\|/, ".").match?(d)}.any?
+        begin
+          Puzzle.new(ref: current_puzzle.id, item: s, solved: sol == s.gsub(/x/,"-") ? solved = true : false).save unless Puzzle.where(item: s).any?
+        rescue
+          nil
         end
       end
     end
-    begin
-      current_puzzle = current_puzzle.next
-    end while deadends.map{|n| current_puzzle.item[n] == "x"}.any?
+    current_puzzle = current_puzzle.next
   end
 end
 
+# Mostra solução
 show_solution puzzle
 dump_database filename, solved

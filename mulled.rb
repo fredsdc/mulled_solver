@@ -103,13 +103,26 @@ end
 def dump_database filename, solved
   if ::ActiveRecord::Base.connection_config[:database] == ":memory:"
     ddb = SQLite3::Database.new(filename)
-    if ddb.table_info('puzzles').empty? || ddb.execute('select * from puzzles where solved="t"').empty?
+    if ddb.table_info('puzzles').empty?
       STDERR.puts "-- Gravando banco de dados #{filename} --"
       sdb = ::ActiveRecord::Base.connection.raw_connection
       b = SQLite3::Backup.new(ddb, 'main', sdb, 'main')
       b.step(-1)
       b.finish
+    else
+      statussdb = [ Deadend.last.id, Puzzle.last.id ]
+      statusddb = [ ddb.execute("SELECT * FROM deadends WHERE id=(SELECT max(id) FROM deadends)")[0][0], ddb.execute("SELECT * FROM puzzles WHERE id=(SELECT max(id) FROM puzzles)")[0][0] ]
+      if statussdb[0] > statusddb[0] || statussdb[1] > statusddb[1]
+        STDERR.puts "-- Atualizando banco de dados #{filename} --"
+        ddb.transaction
+        Deadend.where("id > ?", statusddb[0]).
+          each{|i| ddb.execute "INSERT INTO deadends(id, item) VALUES (#{i.id}, '#{i.item}')"}
+        Puzzle.where("id > ?", statusddb[1]).
+          each{|i| ddb.execute "INSERT INTO puzzles(id, ref, item, solved) VALUES (#{i.id}, #{i.ref}, '#{i.item}', '#{i.solved}')"}
+        ddb.commit
+      end
     end
+    ddb.close
   end
 end
 
@@ -209,15 +222,9 @@ if filename != ":memory:"
     ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database  => ':memory:')
     load_database filename
   end
+  ddb.close
 else
   ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database  => filename)
-  # Continuar?
-  ddb = SQLite3::Database.new('db_dump')
-  if ddb.table_info('puzzles').present? &&
-     [ ddb.execute('select item from deadends where id = 1') + ddb.execute('select item from puzzles where id = 1') ] ==
-     [[puzzle.gsub(/[xo]/,"-").gsub(/[XO_]/,"o")], [puzzle.gsub(/X/, "x").gsub(/O/, "o").gsub(/_/, "-")]]
-    load_database 'db_dump'
-  end
 end
 
 # Cria banco de dados se são existir
@@ -273,16 +280,15 @@ sol             = Deadend.first.item
 sol.size.times{|i| deadends_fixed.map!{|d| d[0, i] + " " + d[i + 1, sol.size]} if sol[i] == " "}
 current_puzzle  = Puzzle.find(Puzzle.last.ref)
 solved          = false
+trap            = false
 deadends_fixed |= deadends.map{|n| (sol[0, n] + "x" + sol[n+1, sol.size]).gsub(/[-o]/, ".")} | gen_fixed_deadends(sol)
 filename        = db_dump_filename filename
 deadends_fixed.select!{|d| d.size == sol.size}
 t1              = Time.now
 
 # Grava deadends
-Deadend.delete_all
-Deadend.new(item: sol).save
 deadends_fixed.each do |d|
-  Deadend.new(item: d).save
+  Deadend.new(item: d).save unless Deadend.where(item: d).any?
 end
 
 # Feedback
@@ -297,8 +303,7 @@ end
 exit if noexec
 
 Signal.trap('INT') {
-  dump_database filename, solved
-  exit
+  trap = true
 }
 
 # Calcula novos itens
@@ -313,6 +318,11 @@ if Puzzle.where(solved: true).empty?
       dump_database filename, solved
     end
 
+    if trap
+      dump_database filename, solved
+      exit
+    end
+
     # Feedback, plus exists if too many iteractions
     unless quiet
       if current_puzzle.id > iteract_index
@@ -321,7 +331,7 @@ if Puzzle.where(solved: true).empty?
         STDERR.puts "-- Iteração: #{iteract} (#{iteract_index - current_puzzle.id + 1}) #{"%.2f" % - (t1 - (t1 = Time.now))}s --"
       end
       if iteract > 50
-        puts "Muitas iterações. Sem solução?"
+        STDERR.puts "Muitas iterações. Sem solução?"
         exit
       end
     end
@@ -329,11 +339,7 @@ if Puzzle.where(solved: true).empty?
     # Writes new not deadend states
     solve(current_puzzle.item).each do |s|
       unless deadends_fixed.map{|d| s.gsub(/\|/, ".").match?(d)}.any?
-        begin
-          Puzzle.new(ref: current_puzzle.id, item: s, solved: sol == s.gsub(/x/,"-") ? solved = true : false).save unless Puzzle.where(item: s).any?
-        rescue
-          nil
-        end
+        Puzzle.new(ref: current_puzzle.id, item: s, solved: sol == s.gsub(/x/,"-") ? solved = true : false).save unless Puzzle.where(item: s).any?
       end
     end
     current_puzzle = current_puzzle.next

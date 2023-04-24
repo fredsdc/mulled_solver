@@ -62,22 +62,27 @@ def show_solving puzzle
 end
 
 # Dump memory database
-def dump_database wdb, filename, solved, perc = ''
+def dump_database wdb, filename, solved, append, perc = ''
   if wdb.filename.empty?
     ddb = Extralite::Database.new(filename)
-    unless ddb.tables.include?("puzzles")
-      STDERR.puts "\r-- Gravando banco de dados #{filename} --"
+    if ! ddb.tables.include?("puzzles")
+      STDERR.puts "\r-- Gravando banco de dados #{filename} #{perc}--"
       wdb.backup(ddb)
-    else
-      statusddb = [ ddb.query("SELECT MAX(id) AS id FROM deadends").first[:id], ddb.query("SELECT MAX(id) AS id FROM puzzles").first[:id] ]
-      statuswdb = [ wdb.query("SELECT MAX(id) AS id FROM deadends").first[:id], wdb.query("SELECT MAX(id) AS id FROM puzzles").first[:id] ]
-      STDERR.puts "\r-- Atualizando banco de dados #{filename} #{perc}-- "
-      ddb.execute("BEGIN")
-      ddb.execute_multi("INSERT INTO deadends(item) VALUES (?)",
-                        wdb.query("SELECT * FROM deadends WHERE id > ?", statusddb[0]).map{|d| [d[:item]]}.flatten) if statuswdb[0] > statusddb[0]
-      ddb.execute_multi("INSERT INTO puzzles(ref, item, solved) VALUES (?, ?, ?)",
-                        wdb.query("SELECT * FROM puzzles WHERE id > ?", statusddb[1]).map{|d| [d[:ref], d[:item], d[:solved]]}) if statuswdb[1] > statusddb[1]
-      ddb.execute("COMMIT")
+    elsif wdb.query("SELECT * FROM puzzles WHERE solved in (1, 't')").first.nil?
+      if append
+        statusddb = [ ddb.query("SELECT MAX(id) AS id FROM deadends").first[:id], ddb.query("SELECT MAX(id) AS id FROM puzzles").first[:id] ]
+        statuswdb = [ wdb.query("SELECT MAX(id) AS id FROM deadends").first[:id], wdb.query("SELECT MAX(id) AS id FROM puzzles").first[:id] ]
+        STDERR.puts "\r-- Atualizando banco de dados #{filename} #{perc}-- "
+        ddb.execute("BEGIN")
+        ddb.execute_multi("INSERT INTO deadends(item) VALUES (?)",
+                          wdb.query("SELECT * FROM deadends WHERE id > ?", statusddb[0]).map{|d| [d[:item]]}.flatten) if statuswdb[0] > statusddb[0]
+        ddb.execute_multi("INSERT INTO puzzles(ref, item, solved) VALUES (?, ?, ?)",
+                          wdb.query("SELECT * FROM puzzles WHERE id > ?", statusddb[1]).map{|d| [d[:ref], d[:item], d[:solved]]}) if statuswdb[1] > statusddb[1]
+        ddb.execute("COMMIT")
+      else
+        STDERR.puts "\r-- Gravando banco de dados #{filename} #{perc}--"
+        wdb.backup(ddb)
+      end
     end
     ddb.close
   end
@@ -106,10 +111,10 @@ def trans puzzle
   puzzle.split('|').map{|s| s.chars}.transpose.map{|s| s.join}.join('|')
 end
 
-def show_solution puzzle
-  STDERR.puts ""
+def show_solution wdb, puzzle
+  STDERR.puts "\r                                                 "
   puts "-- Puzzle: \"#{puzzle}\" --"
-  solution = [ wdb.query("SELECT * FROM puzzles WHERE solved = 1").first ]
+  solution = [ wdb.query("SELECT * FROM puzzles WHERE solved in (1, 't')").first ]
   while solution.first[:id] > 1
     solution = [ wdb.query("SELECT * FROM puzzles WHERE id = ?", solution.first[:ref]).first ] + solution
   end
@@ -147,12 +152,17 @@ deadends_fixed = []
 quiet = false
 nomemory = false
 noexec = false
+append = false
 
 # Parse options
 opt = OptionParser.new do |parser|
   parser.on('-h', '--help', 'Mostra este help.') do |h|
     puts parser
     exit
+  end
+
+  parser.on('-a', '--append', 'Incrementar arquivo gravado.') do |n|
+    append = true
   end
 
   parser.on('-d', '--db NAME', 'Nome do arquivo do banco de dados.') do |n|
@@ -292,12 +302,12 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
       STDERR.print "\r-- Calculando %d%% -- " % (current_puzzle[:id] % 200000 / 2000)
       if current_puzzle[:id] % 200000 == 0
         iteract_percentage = (current_puzzle[:id] - last_iteract_index) * 100 / (iteract_index - last_iteract_index) + 1
-        dump_database wdb, filename, solved, (quiet ? "" : "%d%% " % iteract_percentage)
+        dump_database wdb, filename, solved, append, (quiet ? "" : "%d%% " % iteract_percentage)
       end
     end
 
     if trap
-      dump_database wdb, filename, solved
+      dump_database wdb, filename, solved, append
       exit
     end
 
@@ -327,5 +337,5 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
 end
 
 # Mostra solução
+dump_database wdb, filename, solved, append
 show_solution wdb, puzzle
-dump_database wdb, filename, solved

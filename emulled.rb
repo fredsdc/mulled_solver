@@ -62,7 +62,7 @@ def show_solving puzzle
 end
 
 # Dump memory database
-def dump_database wdb, filename, solved
+def dump_database wdb, filename, solved, perc = ''
   if wdb.filename.empty?
     ddb = Extralite::Database.new(filename)
     unless ddb.tables.include?("puzzles")
@@ -71,7 +71,7 @@ def dump_database wdb, filename, solved
     else
       statusddb = [ ddb.query("SELECT MAX(id) AS id FROM deadends").first[:id], ddb.query("SELECT MAX(id) AS id FROM puzzles").first[:id] ]
       statuswdb = [ wdb.query("SELECT MAX(id) AS id FROM deadends").first[:id], wdb.query("SELECT MAX(id) AS id FROM puzzles").first[:id] ]
-      STDERR.puts "\r-- Atualizando banco de dados #{filename} -- "
+      STDERR.puts "\r-- Atualizando banco de dados #{filename} #{perc}-- "
       ddb.execute("BEGIN")
       ddb.execute_multi("INSERT INTO deadends(item) VALUES (?)",
                         wdb.query("SELECT * FROM deadends WHERE id > ?", statusddb[0]).map{|d| [d[:item]]}.flatten) if statuswdb[0] > statusddb[0]
@@ -239,9 +239,11 @@ end
 if ! quiet && ! noexec
   iteract = 0
   iteract_index = 1
+  last_iteract_index = 1
   while now = wdb.query("SELECT id FROM puzzles WHERE ref > ? LIMIT 1", iteract_index).first
     iteract += 1
     STDERR.puts "-- Iteração: #{iteract} (#{now[:id] - 1 - iteract_index}) --"
+    last_iteract_index = iteract_index
     iteract_index = now[:id] - 1
   end
   STDERR.puts ""
@@ -287,9 +289,10 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
   until solved do
     # Dump database each 200.000 ids
     if current_puzzle[:id] % 2000 == 0
-      STDERR.print "\r-- Calculando %d%% -- " % (current_puzzle[:id] % 200000 / 2000 + 1)
+      STDERR.print "\r-- Calculando %d%% -- " % (current_puzzle[:id] % 200000 / 2000)
       if current_puzzle[:id] % 200000 == 0
-        dump_database wdb, filename, solved
+        iteract_percentage = (current_puzzle[:id] - last_iteract_index) * 100 / (iteract_index - last_iteract_index) + 1
+        dump_database wdb, filename, solved, (quiet ? "" : "%d%% " % iteract_percentage)
       end
     end
 
@@ -302,6 +305,7 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
     unless quiet
       if current_puzzle[:id] > iteract_index
         iteract += 1
+        last_iteract_index = iteract_index
         iteract_index = wdb.query("SELECT MAX(id) AS id FROM puzzles").first[:id]
         STDERR.puts "\r-- Iteração: #{iteract} (#{iteract_index - current_puzzle[:id] + 1}) #{"%.2f" % - (t1 - (t1 = Time.now))}s --"
       end

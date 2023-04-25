@@ -111,14 +111,29 @@ def trans puzzle
   puzzle.split('|').map{|s| s.chars}.transpose.map{|s| s.join}.join('|')
 end
 
-def show_solution wdb, puzzle
+def calc_solution wdb, puzzle, id = 0
   STDERR.puts "\r                                                 "
   puts "-- Puzzle: \"#{puzzle}\" --"
-  solution = [ wdb.query("SELECT * FROM puzzles WHERE solved in (1, 't')").first ]
+  if id == 0
+    solution = [ wdb.query("SELECT * FROM puzzles WHERE solved in (1, 't')").first ]
+  else
+    solution = [ wdb.query("SELECT * FROM puzzles WHERE id = ?", id).first ]
+  end
   while solution.first[:id] > 1
     solution = [ wdb.query("SELECT * FROM puzzles WHERE id = ?", solution.first[:ref]).first ] + solution
   end
+  solution
+end
 
+def calc_middle_solution wdb
+  solution = [ wdb.query("SELECT * FROM puzzle_ms WHERE solved in (1, 't')").first ]
+  while solution.first[:iteract] > 0
+    solution = [ wdb.query("SELECT * FROM puzzle_ms WHERE id = ?", solution.first[:ref]).first ] + solution
+  end
+  solution
+end
+
+def show_solution solution
   puts "-- Solução: --"
   string = ""
   w = solution.first[:item].split('|').first.size
@@ -140,6 +155,16 @@ def show_solution wdb, puzzle
   end
 end
 
+def iteract_backs wdb, iteract
+  wdb.execute("BEGIN")
+  wdb.query("select item from backs where iteract = ?", iteract).each do |i|
+    wdb.execute_multi("INSERT INTO backs(item, iteract) VALUES (?, ?)",
+      solve(i[:item].gsub(/_/, "-")).map {|s| [s.gsub(/-/, "_"), iteract + 1]})
+  end
+  wdb.execute("COMMIT")
+  iteract + 1
+end
+
 # Main program
 
 require 'extralite'
@@ -153,6 +178,8 @@ quiet = false
 nomemory = false
 noexec = false
 append = false
+middle = false
+reset = false
 
 # Parse options
 opt = OptionParser.new do |parser|
@@ -187,6 +214,14 @@ opt = OptionParser.new do |parser|
 
   parser.on('-q', '--quiet', 'Iterações quietas.') do |q|
     quiet = true
+  end
+
+  parser.on('-x', '--meet-middle', 'Meet me in the middle.') do |q|
+    middle = true
+  end
+
+  parser.on('-z', '--reset-meet-middle', 'Reset meet me in the middle.') do |q|
+    reset = true
   end
 
   parser.on('-p', '--puzzle string', 'String que descreve o puzzle (para novos puzzles).
@@ -268,6 +303,7 @@ trap            = false
 deadends_fixed |= deadends.map{|n| (sol[0, n] + "x" + sol[n+1, sol.size]).gsub(/[-o]/, ".")} | gen_fixed_deadends(sol)
 filename        = db_dump_filename filename
 deadends_fixed.select!{|d| d.size == sol.size}
+solution        = []
 t1              = Time.now
 
 # Grava deadends
@@ -286,14 +322,80 @@ if deadends_fixed.any?
 end
 exit if noexec
 
-Signal.trap('INT') {
-  trap = true
-}
-
 # Calcula novos itens
-STDERR.print "\r-- Calculando %d%% -- " % (current_puzzle[:id] % 200000 / 2000 + 1)
+STDERR.print "\r-- Calculando %d%% -- " % (current_puzzle[:id] % 200000 / 2000 + 1) unless middle
 if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
   deadends_fixed.map!{|s| s.gsub(/\|/, ".")}
+
+  # Meet me in the middle
+  if middle
+    # Cria tabelas para meet me in the middle
+    unless wdb.tables.include?("backs")
+      wdb.execute("CREATE TABLE backs (id INTEGER PRIMARY KEY, item TEXT, iteract INTEGER)")
+      wdb.execute("CREATE INDEX backs_item_index ON backs(item)")
+      wdb.execute("INSERT INTO backs(item, iteract) VALUES (?, 0)", sol.gsub(/-/, "_"))
+      wdb.execute("CREATE TABLE puzzle_ms (id INTEGER PRIMARY KEY, ref INTEGER, item TEXT, solved BOOL, iteract INTEGER)")
+      wdb.execute("CREATE UNIQUE INDEX puzzle_ms_item_index ON puzzle_ms(item)")
+    end
+
+    if reset
+      wdb.execute("DELETE FROM backs WHERE id > 1")
+      wdb.execute("DELETE FROM puzzle_ms")
+    end
+
+    # Recupera qual iteração paramos
+    biteract = wdb.query("SELECT max(iteract) as iteract from backs").first[:iteract]
+    biteract = iteract_backs(wdb, biteract) if biteract == 0
+
+    solved = wdb.query("SELECT id FROM puzzle_ms WHERE solved = 1").any?
+    while ! solved
+      # Feedback
+      STDERR.puts "\r-- Iteraction %d --        " % biteract
+
+      # Populate first iteraction of puzzle_ms
+      wdb.execute("DELETE FROM puzzle_ms")
+      wdb.query("SELECT DISTINCT p.* FROM backs b
+                   LEFT JOIN puzzles p
+                     ON p.item LIKE b.item
+                  WHERE b.iteract = ? AND p.id > ? AND p.id <= ?", biteract, last_iteract_index, iteract_index).each do |i|
+        wdb.execute("INSERT INTO puzzle_ms(ref, item, solved, iteract) VALUES (?, ?, ?, 0)", i[:id], i[:item], i[:solved])
+      end
+      miteract=0
+
+      # Feedback
+      STDERR.print "\r-- Searching solution --       "
+
+      while biteract > 0
+        biteract -= 1
+        wdb.query("SELECT * FROM puzzle_ms WHERE iteract = ?", miteract).each do |i|
+          wdb.execute_multi("INSERT INTO puzzle_ms(ref, item, solved, iteract) VALUES (?, ?, ?, ?)",
+            solve(i[:item]).reject{|s| deadends_fixed.map{|d| s.gsub(/\|/, ".").match?(d)}.any? ||
+              wdb.query("SELECT id FROM backs where ? like item and iteract = ? limit 1", s, biteract).empty?}.
+              map{|s| [ i[:id], s, sol == s.gsub(/x/,"-") ? solved = true : false, miteract + 1 ]}.
+              select{|i| wdb.query("SELECT id FROM puzzle_ms WHERE item = ?", i[1]).empty?})
+        end
+        miteract += 1
+      end
+
+      solved = wdb.query("SELECT id FROM puzzle_ms WHERE solved = 1").any?
+      unless solved
+        biteract = wdb.query("SELECT max(iteract) as iteract from backs").first[:iteract]
+        biteract = iteract_backs(wdb, biteract)
+      end
+    end
+
+    # Mostra solução
+    dump_database wdb, filename, solved, append
+    solution = calc_middle_solution wdb
+    ref = solution.shift[:ref]
+    solution = calc_solution(wdb, puzzle, ref) + solution
+    show_solution solution
+    exit
+  end
+
+  Signal.trap('INT') {
+    trap = true
+  }
 
   # Main loop
   until solved do
@@ -318,6 +420,7 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
         last_iteract_index = iteract_index
         iteract_index = wdb.query("SELECT MAX(id) AS id FROM puzzles").first[:id]
         STDERR.puts "\r-- Iteração: #{iteract} (#{iteract_index - current_puzzle[:id] + 1}) #{"%.2f" % - (t1 - (t1 = Time.now))}s --"
+
       end
       if iteract > 50
         STDERR.puts "Muitas iterações. Sem solução?"
@@ -338,4 +441,5 @@ end
 
 # Mostra solução
 dump_database wdb, filename, solved, append
-show_solution wdb, puzzle
+solution = calc_solution wdb, puzzle
+show_solution solution

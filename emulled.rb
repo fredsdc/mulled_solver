@@ -350,9 +350,10 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
     solved = wdb.query("SELECT id FROM puzzle_ms WHERE solved = 1").any?
     while ! solved
       # Feedback
-      STDERR.puts "\r-- Iteraction %d --        " % biteract
+      STDERR.puts "\r-- Iteração %d --        " % biteract
 
       # Populate first iteraction of puzzle_ms
+      STDERR.print "\r-- Populando --         "
       wdb.execute("DELETE FROM puzzle_ms")
       wdb.query("SELECT DISTINCT p.* FROM backs b
                    LEFT JOIN puzzles p
@@ -363,7 +364,7 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
       miteract=0
 
       # Feedback
-      STDERR.print "\r-- Searching solution --       "
+      STDERR.print "\r-- Procurando solução --       "
 
       while biteract > 0
         biteract -= 1
@@ -379,6 +380,7 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
 
       solved = wdb.query("SELECT id FROM puzzle_ms WHERE solved = 1").any?
       unless solved
+        STDERR.print "\r-- Preparando iteração --       "
         biteract = wdb.query("SELECT max(iteract) as iteract from backs").first[:iteract]
         biteract = iteract_backs(wdb, biteract)
       end

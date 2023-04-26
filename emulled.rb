@@ -335,36 +335,36 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
   if middle
     # Cria tabelas para meet me in the middle
     unless wdb.tables.include?("backs")
-      wdb.execute("CREATE TABLE temp (id INTEGER PRIMARY KEY, ref INTEGER, item TEXT, solved BOOL, citem TEXT)")
-      wdb.execute("CREATE INDEX temp_item_index ON temp(citem)")
-      wdb.execute("CREATE TABLE backs (id INTEGER PRIMARY KEY, item TEXT, iteract INTEGER)")
-      wdb.execute("CREATE INDEX backs_item_index ON backs(item)")
-      wdb.execute("INSERT INTO backs(item, iteract) VALUES (?, 0)", sol.gsub(/-/, "_"))
-      wdb.execute("CREATE TABLE puzzle_ms (id INTEGER PRIMARY KEY, ref INTEGER, item TEXT, solved BOOL, iteract INTEGER)")
-      wdb.execute("CREATE UNIQUE INDEX puzzle_ms_item_index ON puzzle_ms(item)")
+      wdb.execute("CREATE TABLE        backs (id INTEGER PRIMARY KEY, item TEXT, iteract INTEGER)")
+      wdb.execute("CREATE INDEX        backs_item_index        ON backs(item)")
+      wdb.execute("INSERT INTO         backs(item, iteract)    VALUES (?, 0)", sol.gsub(/-/, "_"))
+      wdb.execute("CREATE TABLE        puzzle_ms (id INTEGER PRIMARY KEY, ref INTEGER, item TEXT, citem TEXT, solved BOOL, iteract INTEGER)")
+      wdb.execute("CREATE UNIQUE INDEX puzzle_ms_item_index    ON puzzle_ms(item)")
+      wdb.execute("CREATE INDEX        puzzle_ms_citem_index   ON puzzle_ms(citem)")
+      wdb.execute("CREATE INDEX        puzzle_ms_iteract_index ON puzzle_ms(iteract)")
+      wdb.execute("CREATE INDEX        puzzle_ms_solved_index  ON puzzle_ms(solved)")
     end
 
     if reset
       wdb.execute("DELETE FROM backs WHERE id > 1")
       wdb.execute("DELETE FROM puzzle_ms")
-      wdb.execute("DELETE FROM temp")
     end
 
-    wdb.execute("CREATE TABLE temp (id INTEGER PRIMARY KEY, ref INTEGER, item TEXT, solved BOOL, citem TEXT)")
-    wdb.execute("CREATE INDEX temp_citem_index ON temp(citem)")
-
-    STDERR.puts "\r#{line}\r-- Copiando dados -- "
-    index_now = last_iteract_index
-    turn = (iteract_index - last_iteract_index) / 100 + 1
-    while index_now < iteract_index
-      STDERR.print "\r#{line}\r-- Populando %d%% -- " % ((index_now - last_iteract_index) / turn)
-      top = (index_now + turn) > iteract_index ? iteract_index : (index_now + turn)
-      wdb.execute("BEGIN")
-      wdb.execute_multi("INSERT INTO temp(ref, item, solved, citem) VALUES (?, ?, ?, ?)",
-        wdb.query("SELECT * FROM puzzles WHERE id > ? and id <= ?", index_now, top).
-        map(|i| [i[:ref], i[:item], i[:solved], i[:item].gsub(/[x-]/, ".")]))
-      wdb.execute("COMMIT")
-      index_now += turn
+    i = wdb.query("SELECT COUNT(id) AS count FROM puzzle_ms WHERE iteract = 99").first[:count]
+    if i < (iteract_index - last_iteract_index)
+      # index_now = índice do item anterior
+      index_now = last_iteract_index + i
+      turn = (iteract_index - last_iteract_index) / 100 + 1
+      while index_now < iteract_index
+        STDERR.print "\r#{line}\r-- Populando %d%% -- " % ((index_now - last_iteract_index) / turn)
+        top = (index_now + turn) > iteract_index ? iteract_index : (index_now + turn)
+        wdb.execute("BEGIN")
+        wdb.execute_multi("INSERT INTO puzzle_ms(ref, item, citem, solved, iteract) VALUES (?, ?, ?, ?, 99)",
+          wdb.query("SELECT * FROM puzzles WHERE id > ? and id <= ?", index_now, top).
+            map{|i| [i[:ref], i[:item], i[:item].gsub(/[x-]/, "_"), i[:solved]]})
+        wdb.execute("COMMIT")
+        index_now += turn
+      end
     end
 
     # Recupera qual iteração paramos
@@ -374,12 +374,12 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
     solved = wdb.query("SELECT id FROM puzzle_ms WHERE solved = 1").any?
     while ! solved
       # Feedback
-      STDERR.puts "\r#{line}\r-- Iteração %d -- " % biteract
+      STDERR.puts "\r#{line}\r-- Iteração %d (%d items) -- " % biteract, wdb.query("SELECT COUNT(id) FROM backs WHERE iteract = ?", biteract)
 
-      # Populate first iteraction of puzzle_ms
-      wdb.execute("DELETE FROM puzzle_ms")
-      wdb.query("SELECT p.* FROM backs b LEFT JOIN temp p ON b.item = p.citem WHERE b.iteract = ?", biteract).each do |i|
-        wdb.execute("INSERT INTO puzzle_ms(ref, item, solved, iteract) VALUES (?, ?, ?, 0)", i[:id], i[:item], i[:solved])
+      # # Populate first iteraction of puzzle_ms
+      wdb.execute("DELETE FROM puzzle_ms WHERE iteract < 99")
+      wdb.query("SELECT p.* FROM backs b LEFT JOIN puzzle_ms p ON b.item = p.citem WHERE b.iteract = ? and p.iteract = 99", biteract).each do |i|
+        wdb.execute("INSERT INTO puzzle_ms(ref, item, citem, solved, iteract) VALUES (?, ?, ?, ?, 0)", i[:id], i[:item], i[:citem], i[:solved])
       end
       miteract=0
 
@@ -389,10 +389,11 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
       while biteract > 0
         biteract -= 1
         wdb.query("SELECT * FROM puzzle_ms WHERE iteract = ?", miteract).each do |i|
-          wdb.execute_multi("INSERT INTO puzzle_ms(ref, item, solved, iteract) VALUES (?, ?, ?, ?)",
-            solve(i[:item]).reject{|s| deadends_fixed.map{|d| s.gsub(/\|/, ".").match?(d)}.any? ||
-              wdb.query("SELECT id FROM backs where ? like item and iteract = ? limit 1", s, biteract).empty?}.
-              map{|s| [ i[:id], s, sol == s.gsub(/x/,"-") ? solved = true : false, miteract + 1 ]}.
+          wdb.execute_multi("INSERT INTO puzzle_ms(ref, item, citem, solved, iteract) VALUES (?, ?, ?, ?, ?)",
+            solve(i[:item]).
+              reject{|s| deadends_fixed.map{|d| s.gsub(/\|/, ".").match?(d)}.any? ||
+                wdb.query("SELECT id FROM backs where item = ? and iteract = ? limit 1", s.gsub(/[x-]/, "_"), biteract).empty?}.
+              map{|s| [ i[:id], s, s.gsub(/[x-]/, "_"), sol == s.gsub(/x/,"-") ? solved = true : false, miteract + 1 ]}.
               select{|i| wdb.query("SELECT id FROM puzzle_ms WHERE item = ?", i[1]).empty?})
         end
         miteract += 1

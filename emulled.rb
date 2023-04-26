@@ -335,6 +335,8 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
   if middle
     # Cria tabelas para meet me in the middle
     unless wdb.tables.include?("backs")
+      wdb.execute("CREATE TABLE temp (id INTEGER PRIMARY KEY, ref INTEGER, item TEXT, solved BOOL, citem TEXT)")
+      wdb.execute("CREATE INDEX temp_item_index ON temp(citem)")
       wdb.execute("CREATE TABLE backs (id INTEGER PRIMARY KEY, item TEXT, iteract INTEGER)")
       wdb.execute("CREATE INDEX backs_item_index ON backs(item)")
       wdb.execute("INSERT INTO backs(item, iteract) VALUES (?, 0)", sol.gsub(/-/, "_"))
@@ -345,6 +347,24 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
     if reset
       wdb.execute("DELETE FROM backs WHERE id > 1")
       wdb.execute("DELETE FROM puzzle_ms")
+      wdb.execute("DELETE FROM temp")
+    end
+
+    wdb.execute("CREATE TABLE temp (id INTEGER PRIMARY KEY, ref INTEGER, item TEXT, solved BOOL, citem TEXT)")
+    wdb.execute("CREATE INDEX temp_citem_index ON temp(citem)")
+
+    STDERR.puts "\r#{line}\r-- Copiando dados -- "
+    index_now = last_iteract_index
+    turn = (iteract_index - last_iteract_index) / 100 + 1
+    while index_now < iteract_index
+      STDERR.print "\r#{line}\r-- Populando %d%% -- " % ((index_now - last_iteract_index) / turn)
+      top = (index_now + turn) > iteract_index ? iteract_index : (index_now + turn)
+      wdb.execute("BEGIN")
+      wdb.execute_multi("INSERT INTO temp(ref, item, solved, citem) VALUES (?, ?, ?, ?)",
+        wdb.query("SELECT * FROM puzzles WHERE id > ? and id <= ?", index_now, top).
+        map(|i| [i[:ref], i[:item], i[:solved], i[:item].gsub(/[x-]/, ".")]))
+      wdb.execute("COMMIT")
+      index_now += turn
     end
 
     # Recupera qual iteração paramos
@@ -358,18 +378,8 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
 
       # Populate first iteraction of puzzle_ms
       wdb.execute("DELETE FROM puzzle_ms")
-      index_now = last_iteract_index
-      turn = (iteract_index - last_iteract_index) / 100 + 1
-      while index_now < iteract_index
-        STDERR.print "\r#{line}\r-- Populando %d%% -- " % ((index_now - last_iteract_index) / turn)
-        top = (index_now + turn) > iteract_index ? iteract_index : (index_now + turn)
-        wdb.query("SELECT DISTINCT p.* FROM backs b
-                     LEFT JOIN puzzles p
-                       ON p.item LIKE b.item
-                    WHERE b.iteract = ? AND p.id > ? AND p.id <= ?", biteract, index_now, top).each do |i|
-          wdb.execute("INSERT INTO puzzle_ms(ref, item, solved, iteract) VALUES (?, ?, ?, 0)", i[:id], i[:item], i[:solved])
-        end
-        index_now += turn
+      wdb.query("SELECT p.* FROM backs b LEFT JOIN temp p ON b.item = p.citem WHERE b.iteract = ?", biteract).each do |i|
+        wdb.execute("INSERT INTO puzzle_ms(ref, item, solved, iteract) VALUES (?, ?, ?, 0)", i[:id], i[:item], i[:solved])
       end
       miteract=0
 

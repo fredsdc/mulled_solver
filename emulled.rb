@@ -86,6 +86,8 @@ def dump_database wdb, filename, solved, append, perc = ''
       end
     end
     ddb.close
+  else
+    STDERR.puts "\r#{line}\r-- Gravando banco de dados #{filename} #{perc}-- "
   end
 end
 
@@ -421,13 +423,16 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
   }
 
   # Main loop
+  wdb.execute("BEGIN")
   until solved do
     # Dump database each 200.000 ids
     if current_puzzle[:id] % 2000 == 0
       STDERR.print "\r#{line}\r-- Calculando %d%% -- " % (current_puzzle[:id] % 200000 / 2000)
       if current_puzzle[:id] % 200000 == 0
+        wdb.execute("COMMIT")
         iteract_percentage = (current_puzzle[:id] - last_iteract_index) * 100 / (iteract_index - last_iteract_index) + 1
         dump_database wdb, filename, solved, append, (quiet ? "" : "%d%% " % iteract_percentage)
+        wdb.execute("BEGIN")
       end
     end
 
@@ -452,14 +457,13 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
     end
 
     # Writes new not deadend states
-    wdb.execute("BEGIN")
     wdb.execute_multi("INSERT INTO puzzles(ref, item, solved) VALUES (?, ?, ?)",
       solve(current_puzzle[:item]).reject{|s| deadends_fixed.map{|d| s.gsub(/\|/, ".").match?(d)}.any?}.
         map{|s| [ current_puzzle[:id], s, sol == s.gsub(/x/,"-") ? solved = true : false ]}.
         select{|i| wdb.query("SELECT id FROM puzzles WHERE item = ?", i[1]).empty?})
-    wdb.execute("COMMIT")
     current_puzzle  = wdb.query("SELECT * FROM puzzles WHERE id = ?", current_puzzle[:id] + 1).first
   end
+  wdb.execute("COMMIT")
 end
 
 # Mostra solução

@@ -65,6 +65,7 @@ end
 def dump_database wdb, filename, solved, append, perc = ''
   line           = '                                                                          '
   if wdb.filename.empty?
+    wdb.execute("COMMIT") rescue nil
     ddb = Extralite::Database.new(filename)
     if ! ddb.tables.include?("puzzles")
       STDERR.puts "\r#{line}\r-- Gravando banco de dados #{filename} #{perc}-- "

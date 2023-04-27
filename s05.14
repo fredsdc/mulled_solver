@@ -1,0 +1,12 @@
+-- Puzzle: "-xXo-|xoxXo|xxxxx|o_xxx|XxoXx|xx xo|--X--" --
+-- Solução: --
+0      1      2      3      4      5      6      7      8      9      10     11
+
+-xxo-  xxo--  xx-o-  xx-o-  xx-o-  xx-o-  xx-o-  xxoo-  xxoo-  xxoo-  xxo--  xxo--
+xoxxo  xoxxo  xoxxo  xoxx-  xoxx-  xoxx-  x-oxx  x-xxx  x-xxx  x-xxx  x-xox  x-xox
+xxxxx  xxxxx  xxxxx  xxxxo  xxxxo  xxxxo  xxxxo  xxxxo  xxxx-  xxxx-  xxxx-  xxxx-
+o-xxx  o-xxx  o-xxx  o-xxx  o-xxx  o-xxx  o-xxx  o-oxx  o-oxo  ooxo-  ooxx-  -oxx-
+xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xx-xx  xx-xx  xx-xx  xx-ox  ox-ox
+xx xo  xx xo  xx xo  xx xx  xx xx  xx xx  xx xx  xx xx  xx xx  xx xx  xx xx  xx xx
+--x--  --x--  --x--  --x-o  --xo-  -xo--  -xo--  -xo--  -xo-x  -xo-x  -xoxx  xxoxx
+

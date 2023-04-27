@@ -331,7 +331,6 @@ end
 exit if noexec
 
 # Calcula novos itens
-STDERR.print "\r#{line}\r-- Calculando %d%% -- " % (current_puzzle[:id] % 200000 / 2000 + 1) unless middle
 if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
   deadends_fixed.map!{|s| s.gsub(/\|/, ".")}
 

@@ -51,6 +51,15 @@ def flip puzzle
   puzzle.split('|').reverse.join('|')
 end
 
+def test_blocked puzzle sol
+  sol.size.times{|i| puzzle = puzzle[0,i] + "O" + puzzle[i+1,sol.size] if puzzle[i] == "o" && sol[i] == "o"}
+  blocked(puzzle) || blocked(puzzle.reverse) || blocked(flip(puzzle)) || blocked(flip(puzzle.reverse))
+end
+
+def blocked puzzle
+  puzzle.match?(/^[x|]*o[^-o]*\|/) && p.split("|").map{|x| x[0,(p.index("o") + 1) % (p.index("|") + 1)]}.join.match?(/^x*ox*$/) ? true : false
+end
+
 def recover_puzzle
   s  = ""
   c1 = Deadend.first.item

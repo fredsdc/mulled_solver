@@ -115,6 +115,17 @@ def trans puzzle
   puzzle.split('|').map{|s| s.chars}.transpose.map{|s| s.join}.join('|')
 end
 
+def test_blocked puzzle, sol
+  sol.size.times{|i| puzzle = puzzle[0,i] + "O" + puzzle[i+1,sol.size] if puzzle[i] == "o" && sol[i] == "o"}
+  blocked(puzzle) || blocked(puzzle.reverse) || blocked(flip(puzzle)) || blocked(flip(puzzle.reverse))
+end
+
+def blocked puzzle
+  puzzle.match?(/^[x|]*o[^-o]*\|/) && puzzle.split("|").
+    map{|x| x[0,(puzzle.index("o") + 1) % (puzzle.index("|") + 1)]}.join.
+    match?(/^x*ox*$/) ? true : false
+end
+
 def calc_solution wdb, puzzle, id = 0
   line           = '                                                                          '
   STDERR.puts "\r#{line}\r"
@@ -394,6 +405,7 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
           wdb.execute_multi("INSERT INTO puzzle_ms(ref, item, citem, solved, iteract) VALUES (?, ?, ?, ?, ?)",
             solve(i[:item]).
               reject{|s| deadends_fixed.map{|d| s.gsub(/\|/, ".").match?(d)}.any? ||
+                test_blocked(s, sol) ||
                 wdb.query("SELECT id FROM backs where item = ? and iteract = ? limit 1", s.gsub(/[x-]/, "_"), biteract).empty?}.
               map{|s| [ i[:id], s, s.gsub(/[x-]/, "_"), sol == s.gsub(/x/,"-") ? solved = true : false, miteract + 1 ]}.
               select{|i| wdb.query("SELECT id FROM puzzle_ms WHERE item = ?", i[1]).empty?})
@@ -458,7 +470,7 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
 
     # Writes new not deadend states
     wdb.execute_multi("INSERT INTO puzzles(ref, item, solved) VALUES (?, ?, ?)",
-      solve(current_puzzle[:item]).reject{|s| deadends_fixed.map{|d| s.gsub(/\|/, ".").match?(d)}.any?}.
+      solve(current_puzzle[:item]).reject{|s| deadends_fixed.map{|d| s.gsub(/\|/, ".").match?(d)}.any? || test_blocked(s, sol)}.
         map{|s| [ current_puzzle[:id], s, sol == s.gsub(/x/,"-") ? solved = true : false ]}.
         select{|i| wdb.query("SELECT id FROM puzzles WHERE item = ?", i[1]).empty?})
     current_puzzle  = wdb.query("SELECT * FROM puzzles WHERE id = ?", current_puzzle[:id] + 1).first

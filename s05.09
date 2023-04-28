@@ -1,0 +1,22 @@
+-- Puzzle: "ox-xo|-xxx-|xx-xx|xxoxx|xx-xx|-XXX-|oX-Xo" --
+-- Solução: --
+0      1      2      3      4      5      6      7      8      9      10     11     12     13     14     15     16     17     18     19     20
+
+ox-xo  oxxo-  oxxo-  oxxo-  oxxo-  oxxo-  oxxo-  oxxo-  oxx--  oxx--  oxx--  -oxx-  --oxx  ---xx  ---xx  ---xx  ---xx  ---xx  -x-xx  -x-xx  -x-xx
+-xxx-  -xxx-  -xxx-  -xxx-  -xxxx  -xxxx  -xxxx  -xxxx  -xxox  xxo-x  xxo-x  xxo-x  xxo-x  xxo-x  xx--x  xx--x  xx--x  xx--x  xx--x  xx--x  xx--x
+xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xxoxx  xxoxx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx
+xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx
+xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx
+-xxx-  -xxx-  oxxx-  -oxxx  -oxxo  oxxo-  -xxo-  xxo--  xxox-  xxox-  xx-ox  xx-ox  xx-ox  xx-ox  xx-ox  xxoox  xxoox  xxoox  xooox  x-oox  xo-ox
+ox-xo  ox-xo  -x-xo  -x-xo  -x-x-  -x-x-  ox-x-  ox-x-  ox-x-  ox-x-  ox-x-  ox-x-  ox-x-  ox-x-  ox-x-  ox-x-  oxox-  -oxox  --xox  -oxox  -oxox
+
+21
+
+-x-xx
+xx--x
+xx-xx
+xx-xx
+xx-xx
+xooox
+-oxox
+

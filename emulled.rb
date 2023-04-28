@@ -449,6 +449,7 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
     end
 
     if trap
+      wdb.execute("COMMIT")
       dump_database wdb, filename, solved, append
       exit
     end

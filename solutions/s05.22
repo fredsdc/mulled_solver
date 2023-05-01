@@ -1,0 +1,22 @@
+-- Puzzle: "o-x-o|xx-xx|xxXxx|_xxx_|xxXxx|xx-xx|o-x-o" --
+-- Solução: --
+0      1      2      3      4      5      6      7      8      9      10     11     12     13     14     15     16     17     18     19     20
+
+o-x-o  o-xo-  o-xo-  oxxo-  oxx--  oxx--  oxx--  -oxx-  --oxx  -xoxx  xo-xx  x-oxx  xxoxx  xxoxx  xxoxx  xxoxx  xxoxx  xx-xx  xx-xx  xx-xx  xx-xx
+xx-xx  xx-xx  xx-xx  xx-xx  xx-ox  xx-ox  xx-ox  xx-ox  xx-ox  xx-ox  xx-ox  xx-ox  xx-ox  xx--x  xx--x  xx--x  xx--x  xxo-x  xx-ox  xx--x  xx--x
+xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxox  xxxox  xxxox  xxxox  xxxox  xxxox  xxxox  xxxox
+-xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -oxx-  -oxx-  -oxx-  -oxx-  -oxx-  -oxx-  -oxx-  -oxo-  oxo--
+xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xoxxx  xoxxx  xoxxx  x-xxx  x-xxx  x-xxx  x-xxx  x-xxx  x-xxx  x-xxx  x-xxx  x-xxx
+xx-xx  xx-xx  xx-xx  xo-xx  xo-xx  xo-xx  xo-xx  xo-xx  xo-xx  x--xx  x--xx  x--xx  x--xx  x--xx  x--xx  x--xx  x-oxx  x-oxx  x-oxx  x-oxx  x-oxx
+o-x-o  o-x-o  -ox-o  --x-o  --xxo  -xxo-  xxo--  xxo--  xxo--  xxo--  xxo--  xxo--  xxo--  xxox-  xx-ox  xxo-x  xx--x  xx--x  xx--x  xx-xx  xx-xx
+
+21     22     23
+
+xx-xx  xx-xx  xx-xx
+xxx-x  xxx-x  xxx-x
+xxoox  xxo-x  xxo-x
+oxx--  oxxo-  oxx-o
+x-oxx  x-oxx  x-oxx
+x--xx  x--xx  x--xx
+xx-xx  xx-xx  xx-xx
+

@@ -203,7 +203,7 @@ puzzle         = nil
 deadends       = []
 deadends_fixed = []
 quiet          = false
-nomemory       = false
+nomemory       = true
 noexec         = false
 append         = false
 middle         = false
@@ -232,8 +232,8 @@ opt = OptionParser.new do |parser|
     deadends_fixed |= [ e.gsub(/[^.|oxOX_ -]/, '') ]
   end
 
-  parser.on('-m', '--no-mem', 'Não usar o banco de dados em memória (ignorado se não houver nome de arquivo).') do |m|
-    nomemory = true
+  parser.on('-m', '--no-mem', 'Usar o banco de dados em memória (ignorado se não houver nome de arquivo).') do |m|
+    nomemory = false
   end
 
   parser.on('-n', '--no-exec', 'Não executer.') do |m|

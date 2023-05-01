@@ -88,6 +88,7 @@ def dump_database wdb, filename, solved, append, perc = ''
     end
     ddb.close
   else
+    STDERR.puts "\r#{line}\r-- Gravando banco de dados #{filename} #{perc}-- "
     wdb.execute("COMMIT") rescue nil
   end
 end
@@ -191,10 +192,10 @@ def calc_solution wdb, puzzle, id = 0
   solution
 end
 
-def calc_middle_solution wdb
-  solution = [ wdb.query("SELECT * FROM puzzle_xs WHERE solved in (1, 't') LIMIT 1").first ]
+def calc_middle_solution xdb, wdb
+  solution = [ xdb.query("SELECT * FROM puzzle_xs WHERE solved in (1, 't') LIMIT 1").first ]
   while solution.last[:iteract] > 0
-    solution += [ wdb.query("SELECT * FROM puzzle_xs WHERE id = ?", solution.last[:ref]).first ]
+    solution += [ xdb.query("SELECT * FROM puzzle_xs WHERE id = ?", solution.last[:ref]).first ]
   end
   solution.first[:ref] = wdb.query("SELECT * FROM puzzles WHERE item = ? LIMIT 1", solution.first[:item]).first[:id]
   solution
@@ -301,13 +302,19 @@ end
 # Qual banco de dados?
 if filename.empty?
   wdb = Extralite::Database.new("")
+  xdb = Extralite::Database.new("")
 else
   tdb = Extralite::Database.new(filename)
   if nomemory || tdb.tables.include?("puzzles") && tdb.query("SELECT * FROM puzzles WHERE solved = 1 LIMIT 1").any?
     wdb = tdb
+    xdb = Extralite::Database.new(filename + "x")
   else
     wdb = Extralite::Database.new("")
+    xdb = Extralite::Database.new("")
     tdb.backup(wdb)
+    tdb.close
+    tdb = Extralite::Database.new(filename + "x")
+    tdb.backup(xdb)
     tdb.close
   end
 end
@@ -342,17 +349,17 @@ else
 end
 
 # Recupera qual iteração paramos
-if ! quiet && ! noexec
+if ! noexec
   iteract = 0
   iteract_index = 1
   last_iteract_index = 1
   while now = wdb.query("SELECT id FROM puzzles WHERE ref > ? LIMIT 1", iteract_index).first
     iteract += 1
-    STDERR.puts "-- Iteração: #{iteract} (#{now[:id] - 1 - iteract_index}) --"
+    STDERR.puts "-- Iteração: #{iteract} (#{now[:id] - 1 - iteract_index}) --" if ! quiet
     last_iteract_index = iteract_index
     iteract_index = now[:id] - 1
   end
-  STDERR.puts ""
+  STDERR.puts "" if ! quiet
 end
 
 # Declara variáveis
@@ -392,17 +399,17 @@ exit if noexec
 # Meet me in the middle
 if middle
   # Cria tabelas para meet me in the middle
-  unless wdb.tables.include?("puzzle_xs")
-    wdb.execute("CREATE TABLE        puzzle_xs (id INTEGER PRIMARY KEY, ref INTEGER, item TEXT, solved BOOL, iteract INTEGER)")
-    wdb.execute("CREATE UNIQUE INDEX puzzle_xs_item_index    ON puzzle_xs(item)")
-    wdb.execute("CREATE INDEX        puzzle_xs_solved_index  ON puzzle_xs(solved)")
-    wdb.execute("CREATE INDEX        puzzle_xs_iteract_index ON puzzle_xs(iteract)")
+  unless xdb.tables.include?("puzzle_xs")
+    xdb.execute("CREATE TABLE        puzzle_xs (id INTEGER PRIMARY KEY, ref INTEGER, item TEXT, solved BOOL, iteract INTEGER)")
+    xdb.execute("CREATE UNIQUE INDEX puzzle_xs_item_index    ON puzzle_xs(item)")
+    xdb.execute("CREATE INDEX        puzzle_xs_solved_index  ON puzzle_xs(solved)")
+    xdb.execute("CREATE INDEX        puzzle_xs_iteract_index ON puzzle_xs(iteract)")
   end
 
   # Recupera qual iteração paramos
-  biteract = wdb.query("SELECT max(iteract) as iteract from puzzle_xs").first[:iteract]
+  biteract = xdb.query("SELECT max(iteract) as iteract from puzzle_xs").first[:iteract]
   if biteract.nil? || biteract == 0
-    wdb.execute("DELETE FROM puzzle_xs") if biteract == 0
+    xdb.execute("DELETE FROM puzzle_xs") if biteract == 0
     arry = [ sol.gsub(/-/, "x") ]
     t = wdb.query("Select item from puzzles where id=1").first[:item].gsub(/[^-]/,"").size
     t.times do |n|
@@ -414,50 +421,50 @@ if middle
       arry = n == 0 ? arry1.select{|p| p.match?(/o-|-o/) || trans(p).match?(/o-|-o/)} : arry1.uniq
     end
     STDERR.puts "\r#{line}\r-- Populando Meet in the Middle --"
-    wdb.execute("BEGIN")
+    xdb.execute("BEGIN")
     arry.each do |p|
-      wdb.execute("INSERT INTO puzzle_xs(ref, item, solved, iteract) VALUES (1, ?, 0, 0)", p)
+      xdb.execute("INSERT INTO puzzle_xs(ref, item, solved, iteract) VALUES (1, ?, 0, 0)", p)
     end
-    wdb.execute("COMMIT")
-    STDERR.puts "-- Iteração: 0 (%d) --" % wdb.query("SELECT max(id) AS count FROM puzzle_xs").first[:count]
+    xdb.execute("COMMIT")
+    STDERR.puts "-- Iteração: 0 (%d) --" % xdb.query("SELECT max(id) AS count FROM puzzle_xs").first[:count]
     biteract = 1
   else
     biteract.times do |b|
-      STDERR.puts "-- Iteração: %d (%d) --" % [b, wdb.query("SELECT count(id) AS count FROM puzzle_xs where iteract = ?", b).first[:count]]
+      STDERR.puts "-- Iteração: %d (%d) --" % [b, xdb.query("SELECT count(id) AS count FROM puzzle_xs where iteract = ?", b).first[:count]]
     end
   end
 
-  current_puzzle  = wdb.query("SELECT * FROM puzzle_xs WHERE id = (SELECT ref FROM puzzle_xs WHERE id = (SELECT MAX(id) FROM puzzle_xs))").first
-  last_iteract_index, iteract_index = wdb.query("SELECT MIN(id) - 1, MAX(id) FROM puzzle_xs WHERE iteract = ?", biteract - 1).first.values
-  solved = wdb.query("SELECT id FROM puzzle_xs WHERE solved = 1 LIMIT 1").any?
+  current_puzzle  = xdb.query("SELECT * FROM puzzle_xs WHERE id = (SELECT ref FROM puzzle_xs WHERE id = (SELECT MAX(id) FROM puzzle_xs))").first
+  last_biteract_index, biteract_index = xdb.query("SELECT MIN(id) - 1, MAX(id) FROM puzzle_xs WHERE iteract = ?", biteract - 1).first.values
+  solved = xdb.query("SELECT id FROM puzzle_xs WHERE solved = 1 LIMIT 1").any?
 
   # Main loop
-  wdb.execute("BEGIN")
+  xdb.execute("BEGIN")
   until solved do
     # Dump database each 200.000 ids
-    if current_puzzle[:id] % 2000 == 0
-      n = (current_puzzle[:id] % 200000 / 2000)
+    if current_puzzle[:id] % 1000 == 0
+      n = (current_puzzle[:id] % 100000 / 1000)
       STDERR.print "\r#{line}\r-- Calculando %d%% -- " % (n == 0 ? 100 : n)
-      if current_puzzle[:id] % 200000 == 0
-        wdb.execute("COMMIT")
-        iteract_percentage = (current_puzzle[:id] - last_iteract_index) * 100 / (iteract_index - last_iteract_index) + 1
+      if current_puzzle[:id] % 100000 == 0
+        xdb.execute("COMMIT")
+        iteract_percentage = (current_puzzle[:id] - last_biteract_index) * 100 / (biteract_index - last_biteract_index) + 1
         dump_database wdb, filename, solved, append, (quiet ? "" : "%d%% " % iteract_percentage)
-        wdb.execute("BEGIN")
+        xdb.execute("BEGIN")
       end
     end
 
     if trap
-      wdb.execute("COMMIT")
-      dump_database wdb, filename, solved, append
+      xdb.execute("COMMIT")
+      dump_database xdb, filename, solved, append
       exit
     end
 
     # Feedback, plus exists if too many iteractions
     unless quiet
-      if current_puzzle[:id] > iteract_index
-        last_iteract_index = iteract_index
-        iteract_index = wdb.query("SELECT MAX(id) AS id FROM puzzle_xs").first[:id]
-        STDERR.puts "\r#{line}\r-- Iteração: #{biteract} (#{iteract_index - current_puzzle[:id] + 1}) #{"%.2f" % - (t1 - (t1 = Time.now))}s -- "
+      if current_puzzle[:id] > biteract_index
+        last_biteract_index = biteract_index
+        biteract_index = xdb.query("SELECT MAX(id) AS id FROM puzzle_xs").first[:id]
+        STDERR.puts "\r#{line}\r-- Iteração: #{biteract} (#{biteract_index - current_puzzle[:id] + 1}) #{"%.2f" % - (t1 - (t1 = Time.now))}s -- "
         biteract += 1
       end
       if biteract > 50
@@ -467,26 +474,26 @@ if middle
     end
 
     # Writes new states
-    wdb.execute_multi("INSERT INTO puzzle_xs(ref, item, solved, iteract) VALUES (?, ?, ?, ?)", solvex(current_puzzle[:item]).
-      select{|s| wdb.query("SELECT id FROM puzzle_xs WHERE item = ? LIMIT 1", s).empty?}.
-      map{|s| [ current_puzzle[:id], s, solved = wdb.query("SELECT id FROM puzzles where item = ? LIMIT 1", s).any?, biteract ]})
-    current_puzzle  = wdb.query("SELECT * FROM puzzle_xs WHERE id = ?", current_puzzle[:id] + 1).first
+    xdb.execute_multi("INSERT INTO puzzle_xs(ref, item, solved, iteract) VALUES (?, ?, ?, ?)", solvex(current_puzzle[:item]).
+      select{|s| xdb.query("SELECT id FROM puzzle_xs WHERE item = ? LIMIT 1", s).empty?}.
+      map{|s| [ current_puzzle[:id], s, solved = wdb.query("SELECT id FROM puzzles where item = ? AND id <= ? LIMIT 1", s, iteract_index).any?, biteract ]})
+    current_puzzle  = xdb.query("SELECT * FROM puzzle_xs WHERE id = ?", current_puzzle[:id] + 1).first
   end
-  wdb.execute("COMMIT")
+  xdb.execute("COMMIT")
 
   # Mostra solução
-  solution = calc_middle_solution wdb
+  solution = calc_middle_solution xdb, wdb
   ref = solution.shift[:ref]
   solution = calc_solution(wdb, puzzle, ref) + solution
   show_solution solution
-  dump_database wdb, filename, solved, append
+  dump_database xdb, filename, solved, append
 else
   solved = wdb.query("SELECT id FROM puzzles WHERE solved = 1 LIMIT 1").any?
   deadends_fixed.map!{|s| s.gsub(/\|/, ".")}
-  biteract = wdb.tables.include?("puzzle_xs") ? wdb.query("SELECT max(iteract) as iteract from puzzle_xs").first[:iteract] : 0
-  if biteract > 0 && wdb.query("SELECT id FROM puzzle_xs WHERE solved = 1 LIMIT 1").any?
+  biteract = xdb.tables.include?("puzzle_xs") ? wdb.query("SELECT max(iteract) as iteract from puzzle_xs").first[:iteract] : 0
+  if biteract > 0 && xdb.query("SELECT id FROM puzzle_xs WHERE solved = 1 LIMIT 1").any?
     STDERR.puts "\r#{line}\r-- Solved in the middle --"
-    solution = calc_middle_solution wdb
+    solution = calc_middle_solution xdb, wdb
     ref = solution.shift[:ref]
     solution = calc_solution(wdb, puzzle, ref) + solution
     show_solution solution
@@ -498,10 +505,10 @@ else
   wdb.execute("BEGIN")
   until solved do
     # Dump database each 200.000 ids
-    if current_puzzle[:id] % 2000 == 0
-      n = (current_puzzle[:id] % 200000 / 2000)
+    if current_puzzle[:id] % 1000 == 0
+      n = (current_puzzle[:id] % 100000 / 1000)
       STDERR.print "\r#{line}\r-- Calculando %d%% -- " % (n == 0 ? 100 : n)
-      if current_puzzle[:id] % 200000 == 0
+      if current_puzzle[:id] % 100000 == 0
         wdb.execute("COMMIT")
         iteract_percentage = (current_puzzle[:id] - last_iteract_index) * 100 / (iteract_index - last_iteract_index) + 1
         dump_database wdb, filename, solved, append, (quiet ? "" : "%d%% " % iteract_percentage)
@@ -539,10 +546,10 @@ else
       ids = wdb.query("SELECT id FROM puzzle_xs WHERE item in ('#{arry.map{|a| a[1]}.join("','")}')")
       if ids.any?
         STDERR.puts "\r#{line}\r-- Solved in the middle --"
-        wdb.execute "UPDATE puzzle_xs SET solved = 1 WHERE id IN (#{ids.map{|a| a[:id]}.join(",")})"
+        xdb.execute "UPDATE puzzle_xs SET solved = 1 WHERE id IN (#{ids.map{|a| a[:id]}.join(",")})"
         wdb.execute("COMMIT")
 
-        solution = calc_middle_solution wdb
+        solution = calc_middle_solution xdb, wdb
         ref = solution.shift[:ref]
         solution = calc_solution(wdb, puzzle, ref) + solution
         show_solution solution

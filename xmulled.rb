@@ -70,7 +70,7 @@ def dump_database wdb, filename, solved, append, perc = ''
     if ! ddb.tables.include?("puzzles")
       STDERR.puts "\r#{line}\r-- Gravando banco de dados #{filename} #{perc}-- "
       wdb.backup(ddb)
-    elsif ddb.query("SELECT * FROM puzzles WHERE solved in (1, 't') LIMIT 1").first.nil?
+    elsif wdb.query("SELECT * FROM puzzles WHERE solved in (1, 't') LIMIT 1").first.nil?
       if append
         statusddb = [ ddb.query("SELECT MAX(id) AS id FROM deadends").first[:id], ddb.query("SELECT MAX(id) AS id FROM puzzles").first[:id] ]
         statuswdb = [ wdb.query("SELECT MAX(id) AS id FROM deadends").first[:id], wdb.query("SELECT MAX(id) AS id FROM puzzles").first[:id] ]
@@ -88,7 +88,7 @@ def dump_database wdb, filename, solved, append, perc = ''
     end
     ddb.close
   else
-    wdb.execute("COMMIT") rescue nil
+    STDERR.puts "\r#{line}\r-- Gravando banco de dados #{filename} #{perc}-- "
   end
 end
 
@@ -138,36 +138,6 @@ end
 def test_blocked puzzle, sol
   sol.size.times{|i| puzzle = puzzle[0,i] + "O" + puzzle[i+1,sol.size] if puzzle[i] == "o" && sol[i] == "o"}
   blocked(puzzle) || blocked(puzzle.reverse) || blocked(flip(puzzle)) || blocked(flip(puzzle.reverse))
-end
-
-def gen_blocked sol
-  lr = sol.split("|").first.size
-  ud = sol.split("|").size
-  lri = []
-  udi = []
-  sol.split("|").each{|s| s.size.times{|i| lri += [i] if s[i] == "o"}}
-  trans(sol).split("|").each{|s| s.size.times{|i| udi += [i] if s[i] == "o"}}
-  l  = lri.min
-  r  = lri.max
-  u  = udi.min
-  d  = udi.max
-  a  = []
-  lr.times do |i|
-    ud.times do |j|
-      line1 = "x" * lr + "|"
-      line2 = "x" * i + "o" + "x" * (lr - i - 1) + "|"
-      line3 = "x" * (i + 1) + "." * (lr - i - 1) + "|"
-      line4 = "." * (i) + "x" * (lr - i) + "|"
-      if sol[j * (lr + 1) + i] == "."
-        a += [ line1 * j + line2 + line3 * (ud - j - 1) ] if j < u && i < l
-        a += [ line1 * j + line2 + line4 * (ud - j - 1) ] if j < u && i > r
-        a += [ line3 * j + line2 + line1 * (ud - j - 1) ] if j > d && i < l
-        a += [ line4 * j + line2 + line1 * (ud - j - 1) ] if j > d && i > r
-      end
-    end
-  end
-  sol.size.times{|i| a.map!{|d| d[0, i] + " " + d[i + 1, sol.size]} if sol[i] == " "}
-  a.map{|s| s.slice(0,sol.size)}
 end
 
 def blocked puzzle
@@ -233,7 +203,7 @@ puzzle         = nil
 deadends       = []
 deadends_fixed = []
 quiet          = false
-nomemory       = true
+nomemory       = false
 noexec         = false
 append         = false
 middle         = false
@@ -262,8 +232,8 @@ opt = OptionParser.new do |parser|
     deadends_fixed |= [ e.gsub(/[^.|oxOX_ -]/, '') ]
   end
 
-  parser.on('-m', '--memory', 'Usar o banco de dados em memória (ignorado se não houver nome de arquivo).') do |m|
-    nomemory = false
+  parser.on('-m', '--no-mem', 'Não usar o banco de dados em memória (ignorado se não houver nome de arquivo).') do |m|
+    nomemory = true
   end
 
   parser.on('-n', '--no-exec', 'Não executer.') do |m|
@@ -361,7 +331,7 @@ sol.size.times{|i| deadends_fixed.map!{|d| d[0, i] + " " + d[i + 1, sol.size]} i
 current_puzzle  = wdb.query("SELECT * FROM puzzles WHERE id = (SELECT ref FROM puzzles WHERE id = (SELECT MAX(id) FROM puzzles))").first
 solved          = false
 trap            = false
-deadends_fixed |= deadends.map{|n| (sol[0, n] + "x" + sol[n+1, sol.size]).gsub(/[-o]/, ".")} | gen_fixed_deadends(sol) | gen_blocked(sol.gsub(/-/, "."))
+deadends_fixed |= deadends.map{|n| (sol[0, n] + "x" + sol[n+1, sol.size]).gsub(/[-o]/, ".")} | gen_fixed_deadends(sol)
 filename        = db_dump_filename filename
 deadends_fixed.select!{|d| d.size == sol.size}
 solution        = []
@@ -483,16 +453,6 @@ if middle
 else
   solved = wdb.query("SELECT id FROM puzzles WHERE solved = 1 LIMIT 1").any?
   deadends_fixed.map!{|s| s.gsub(/\|/, ".")}
-  biteract = wdb.tables.include?("puzzle_xs") ? wdb.query("SELECT max(iteract) as iteract from puzzle_xs").first[:iteract] : 0
-  if biteract > 0 && wdb.query("SELECT id FROM puzzle_xs WHERE solved = 1 LIMIT 1").any?
-    STDERR.puts "\r#{line}\r-- Solved in the middle --"
-    solution = calc_middle_solution wdb
-    ref = solution.shift[:ref]
-    solution = calc_solution(wdb, puzzle, ref) + solution
-    show_solution solution
-    dump_database wdb, filename, solved, append
-    exit
-  end
 
   # Main loop
   wdb.execute("BEGIN")
@@ -522,6 +482,7 @@ else
         last_iteract_index = iteract_index
         iteract_index = wdb.query("SELECT MAX(id) AS id FROM puzzles").first[:id]
         STDERR.puts "\r#{line}\r-- Iteração: #{iteract} (#{iteract_index - current_puzzle[:id] + 1}) #{"%.2f" % - (t1 - (t1 = Time.now))}s -- "
+
       end
       if iteract > 50
         STDERR.puts "Muitas iterações. Sem solução?"
@@ -530,26 +491,11 @@ else
     end
 
     # Writes new not deadend states
-    arry = solve(current_puzzle[:item]).
-        reject{|s| deadends_fixed.map{|d| s.gsub(/\|/, ".").match?(d)}.any?}.
-        select{|s| wdb.query("SELECT id FROM puzzles WHERE item = ? LIMIT 1", s).empty?}.
-        map{|s| [ current_puzzle[:id], s, sol == s.gsub(/x/,"-") ? solved = true : false ]}
-    wdb.execute_multi("INSERT INTO puzzles(ref, item, solved) VALUES (?, ?, ?)", arry)
-    if biteract > 0
-      ids = wdb.query("SELECT id FROM puzzle_xs WHERE item in ('#{arry.map{|a| a[1]}.join("','")}')")
-      if ids.any?
-        STDERR.puts "\r#{line}\r-- Solved in the middle --"
-        wdb.execute "UPDATE puzzle_xs SET solved = 1 WHERE id IN (#{ids.map{|a| a[:id]}.join(",")})"
-        wdb.execute("COMMIT")
-
-        solution = calc_middle_solution wdb
-        ref = solution.shift[:ref]
-        solution = calc_solution(wdb, puzzle, ref) + solution
-        show_solution solution
-        dump_database wdb, filename, solved, append
-        exit
-      end
-    end
+    wdb.execute_multi("INSERT INTO puzzles(ref, item, solved) VALUES (?, ?, ?)",
+      solve(current_puzzle[:item]).
+        reject{|s| deadends_fixed.map{|d| s.gsub(/\|/, ".").match?(d)}.any? || test_blocked(s, sol)}.
+        map{|s| [ current_puzzle[:id], s, sol == s.gsub(/x/,"-") ? solved = true : false ]}.
+        select{|i| wdb.query("SELECT id FROM puzzles WHERE item = ? LIMIT 1", i[1]).empty?})
     current_puzzle  = wdb.query("SELECT * FROM puzzles WHERE id = ?", current_puzzle[:id] + 1).first
   end
   wdb.execute("COMMIT")

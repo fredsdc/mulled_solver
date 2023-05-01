@@ -1,0 +1,12 @@
+-- Puzzle: "O-OoO|OXOXO|OOOOO|OOOXO|OOOOO|oO OO|OOoOO" --
+-- Solução: --
+0      1      2      3      4      5      6      7      8      9      10     11     12     13     14     15     16     17     18
+
+o-ooo  oxooo  oxooo  oxooo  oxooo  oxooo  oxooo  oxooo  oxooo  oxoo-  -oxoo  ooxoo  ooxoo  ooxoo  ooxoo  -oxoo  oxo-o  oxoxo  oxoxo
+oxoxo  oooxo  oooxo  oooxo  oooxo  oooxo  oooxo  oooxo  oooxo  oooxo  oooxo  oooxo  oooxo  oooxo  oooxo  oooxo  oooxo  ooooo  ooooo
+ooooo  ooooo  ooooo  ooooo  ooooo  oo-oo  o-ooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo
+oooxo  o-oxo  ooxo-  ooxoo  ooxoo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo
+ooooo  ooooo  ooooo  oooo-  oo-oo  ooxoo  ooxoo  o-xoo  oxoo-  oxooo  oxooo  -xooo  xoo-o  xoooo  xoooo  ooooo  ooooo  ooooo  ooooo
+oo oo  oo oo  oo oo  oo oo  oo oo  oo oo  oo oo  oo oo  oo oo  oo oo  oo oo  oo oo  oo oo  oo oo  oo oo  xo oo  xo oo  xo oo  xo oo
+ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooooo  ooo-o  -oooo  ooooo  ooooo  ooo-o  oo-oo
+

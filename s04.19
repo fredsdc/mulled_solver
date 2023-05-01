@@ -1,0 +1,20 @@
+-- Puzzle: "ooxoo|oxXxo|X_XXX|XXX_X|oxXxo|ooxoo" --
+-- Solução: --
+0      1      2      3      4      5      6      7      8      9      10     11     12     13     14     15     16     17     18     19     20
+
+ooxoo  ooxoo  ooxoo  oox-o  ooxo-  ooxoo  oox-o  ooxo-  ooxo-  ooxo-  ooxox  ooxox  oox-x  o-oxx  oxoxx  -xoxx  xo-xx  xoxxx  xoxxx  xoxxx  xoxxx
+oxxxo  oxxxo  oxxxo  oxxoo  oxxoo  oxxox  oxxox  oxxox  oxxox  oxxox  oxxox  oxxox  oxxox  oxxox  oxxox  oxxox  oxxox  oxxox  oxxox  -xxox  xxo-x
+x-xxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxox  xxxox  xxxox  xxxox  xxxoo  xxxoo  xxxoo  xxxoo  xxxoo  oxxoo  oxxoo  oxxoo  oxxoo  oxxoo  oxxoo
+xxx-x  xxx-x  xxx-x  xxxxx  xxxxx  xxxxo  xxxxo  xxxxo  xxxxo  xxxxo  xxxxo  xxxxo  xxxoo  xxxoo  xoxoo  xoxoo  xoxoo  xoooo  xoooo  ooooo  ooooo
+oxxxo  ooxxo  ooxxo  ooxxo  ooxxo  ooxxo  ooxxo  ooxxo  ooxxo  ooxxo  ooxx-  -ooxx  -ooxx  -ooxx  --oxx  x-oxx  x-oxx  x-oxx  x-oxx  x-oxx  x-oxx
+ooxoo  o-xoo  oxo-o  oxo-o  oxo-o  oxo--  oxox-  oxox-  ox-ox  oxo-x  oxo-x  oxo-x  oxoxx  oxoxx  oxoxx  oxoxx  oxoxx  ox-xx  -oxxx  xoxxx  xoxxx
+
+21     22     23     24     25     26     27     28
+
+xoxxx  xoxxx  xoxxx  xoxxx  x-xxx  x-xxx  x-xxx  xxxxx
+xx-ox  xxxox  xxxox  xxx-x  xox-x  x-oxx  xxoxx  xxoxx
+oxxoo  oxooo  oxooo  oxooo  oxooo  oxooo  oxooo  ooooo
+ooooo  oo-oo  ooo-o  ooooo  oxooo  oxooo  ooooo  ooooo
+x-oxx  x-oxx  x-oxx  x-oxx  xooxx  xooxx  xooxx  x-oxx
+xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  x-xxx  x-xxx
+

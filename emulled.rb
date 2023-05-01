@@ -372,9 +372,10 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
         STDERR.print "\r#{line}\r-- Populando %d%% -- " % ((index_now - last_iteract_index) / turn)
         top = (index_now + turn) > iteract_index ? iteract_index : (index_now + turn)
         wdb.execute("BEGIN")
-        wdb.execute_multi("INSERT INTO puzzle_ms(ref, item, citem, solved, iteract) VALUES (?, ?, ?, ?, 99)",
-          wdb.query("SELECT * FROM puzzles WHERE id > ? and id <= ?", index_now, top).
-            map{|i| [i[:id], i[:item], i[:item].gsub(/[x-]/, "_"), i[:solved]]})
+        wdb.query("SELECT * FROM puzzles WHERE id > ? and id <= ?", index_now, top).each do |i|
+          wdb.execute("INSERT INTO puzzle_ms(ref, item, citem, solved, iteract) VALUES (?, ?, ?, ?, 99)",
+            i[:id], i[:item], i[:item].gsub(/[x-]/, "_"), i[:solved])
+        end
         wdb.execute("COMMIT")
         index_now += turn
       end
@@ -449,7 +450,7 @@ if wdb.query("SELECT id FROM puzzles WHERE solved = 1").empty?
     end
 
     if trap
-      wdb.execute("COMMIT")
+      wdb.execute("COMMI")
       dump_database wdb, filename, solved, append
       exit
     end

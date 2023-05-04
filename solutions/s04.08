@@ -1,0 +1,20 @@
+-- Puzzle: "ox-x-|XXxxo|-Xxxo|-Xxxo|XXxxo|ox-x-" --
+-- Solução: --
+0      1      2      3      4      5      6      7      8      9      10     11     12     13     14     15     16     17     18     19     20
+
+ox-x-  ox-x-  ox-x-  ox-x-  ox-x-  ox-x-  ox-x-  oxxx-  oxxx-  -oxxx  o-xxx  o-xxx  o-xxx  o-xxx  o-xxx  o-xxx  oxxxx  oxxxx  oxxxx  oxxxx  oxxxx
+xxxxo  xxxxo  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-
+-xxxo  -xxxo  -xxxo  -xxxo  -xxxo  -xxxo  -xxxo  -xxxo  -xxxo  -xxxo  -xxxo  -xxx-  -xxx-  xxxx-  xxxx-  xxxx-  xoxx-  x-oxx  xo-xx  xoxxx  xoxxx
+-xxxo  xxxxo  xxxxo  xxxxo  xxxxo  xxxxo  xxxxo  xxxxo  xxxxo  xxxxo  xxxxo  xxxxo  xxxxo  oxxxo  oxxx-  -oxxx  -oxxx  -oxxx  -oxxx  -oxxx  -oxxx
+xxxxo  oxxxo  oxxxo  oxxxo  oxxx-  oxxx-  -oxxx  -ooxx  -ooxx  -ooxx  -ooxx  -ooxo  ooxo-  -oxo-  -oxoo  -oxoo  --xoo  --xoo  --xoo  --ooo  -ooo-
+ox-x-  -x-x-  -x-xo  -xxo-  -xxoo  xxoo-  xxoo-  xx-o-  xxo--  xxo--  xxo--  xxo-x  xxo-x  xxo-x  xxo-x  xxo-x  xxo-x  xxo-x  xxo-x  xx--x  xx--x
+
+21     22     23     24     25     26
+
+oxxxx  -xxxx  -xxxx  -xxxx  -xxxx  -xxxx
+xxxx-  oxxx-  -oxxx  o-xxx  ooxxx  ooxxx
+xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx
+-oxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx
+ooo--  ooo--  ooo--  ooo--  o-o--  oo---
+xx--x  xx--x  xx--x  xx--x  xx--x  xx--x
+

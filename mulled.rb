@@ -140,11 +140,6 @@ def trans puzzle
   puzzle.split('|').map{|s| s.chars}.transpose.map{|s| s.join}.join('|')
 end
 
-def test_blocked puzzle, sol
-  sol.size.times{|i| puzzle = puzzle[0,i] + "O" + puzzle[i+1,sol.size] if puzzle[i] == "o" && sol[i] == "o"}
-  blocked(puzzle) || blocked(puzzle.reverse) || blocked(flip(puzzle)) || blocked(flip(puzzle.reverse))
-end
-
 def gen_blocked sol
   lr = sol.split("|").first.size
   ud = sol.split("|").size
@@ -173,12 +168,6 @@ def gen_blocked sol
   end
   sol.size.times{|i| a.map!{|d| d[0, i] + " " + d[i + 1, sol.size]} if sol[i] == " "}
   a.map{|s| s.slice(0,sol.size)}
-end
-
-def blocked puzzle
-  puzzle.match?(/^[x|]*o[^-o]*\|/) && puzzle.split("|").
-    map{|x| x[0,(puzzle.index("o") + 1) % (puzzle.index("|") + 1)]}.join.
-    match?(/^x*ox*$/) ? true : false
 end
 
 def calc_solution wdb, puzzle, id = 0

@@ -435,9 +435,6 @@ until solved do
   end
   miteract=0
 
-  # Feedback
-  STDERR.print "\r#{line}\r-- Procurando solução -- "
-
   while biteract > 0
     if trap
       edb.execute("COMMIT") rescue nil
@@ -445,7 +442,9 @@ until solved do
       exit
     end
 
+    STDERR.print "\r#{line}\r-- Procurando solução (?/?) -- " % [miteract + 1, miteract + biteract]
     biteract -= 1
+
     edb.query("SELECT * FROM puzzle_es WHERE iteract = ?", miteract).each do |i|
       arry = solve(i[:item]).
         reject{|s|

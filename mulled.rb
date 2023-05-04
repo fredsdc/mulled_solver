@@ -38,6 +38,10 @@ def flip puzzle
   puzzle.split('|').reverse.join('|')
 end
 
+def rev puzzle
+  puzzle.split('|').map{|s| s.reverse}.join('|')
+end
+
 # Finds next available db_dump_# filename
 def db_dump_filename filename
   if filename.empty?
@@ -70,7 +74,7 @@ def dump_database wdb, filename, solved, append, perc = ''
     if ! ddb.tables.include?("puzzles")
       STDERR.puts "\r#{line}\r-- Gravando banco de dados #{filename} #{perc}-- "
       wdb.backup(ddb)
-    elsif ddb.query("SELECT * FROM puzzles WHERE solved in (1, 't') LIMIT 1").first.nil?
+    elsif ddb.query("SELECT * FROM puzzles WHERE solved = 1 LIMIT 1").first.nil?
       if append
         statusddb = [ ddb.query("SELECT MAX(id) AS id FROM deadends").first[:id], ddb.query("SELECT MAX(id) AS id FROM puzzles").first[:id] ]
         statuswdb = [ wdb.query("SELECT MAX(id) AS id FROM deadends").first[:id], wdb.query("SELECT MAX(id) AS id FROM puzzles").first[:id] ]
@@ -182,7 +186,7 @@ def calc_solution wdb, puzzle, id = 0
   STDERR.puts "\r#{line}\r"
   puts "-- Puzzle: \"#{puzzle}\" --"
   if id == 0
-    solution = [ wdb.query("SELECT * FROM puzzles WHERE solved in (1, 't') LIMIT 1").first ]
+    solution = [ wdb.query("SELECT * FROM puzzles WHERE solved = 1 LIMIT 1").first ]
   else
     solution = [ wdb.query("SELECT * FROM puzzles WHERE id = ?", id).first ]
   end
@@ -193,7 +197,7 @@ def calc_solution wdb, puzzle, id = 0
 end
 
 def calc_middle_solution xdb, wdb
-  solution = [ xdb.query("SELECT * FROM puzzle_xs WHERE solved in (1, 't') LIMIT 1").first ]
+  solution = [ xdb.query("SELECT * FROM puzzle_xs WHERE solved = 1 LIMIT 1").first ]
   while solution.last[:iteract] > 0
     solution += [ xdb.query("SELECT * FROM puzzle_xs WHERE id = ?", solution.last[:ref]).first ]
   end
@@ -372,6 +376,9 @@ deadends_fixed |= deadends.map{|n| (sol[0, n] + "x" + sol[n+1, sol.size]).gsub(/
 filename        = db_dump_filename filename
 deadends_fixed.select!{|d| d.size == sol.size}
 solution        = []
+norev           = puzzle == rev(puzzle) ? true : false
+noflip          = puzzle == flip(puzzle) ? true : false
+noturn          = puzzle == puzzle.reverse ? true : false
 t1              = Time.now
 
 # Grava deadends
@@ -390,12 +397,11 @@ if deadends_fixed.any?
 end
 exit if noexec
 
+Signal.trap('INT') {
+  trap = true
+}
+
 # Calcula novos itens
-
-  Signal.trap('INT') {
-    trap = true
-  }
-
 # Meet me in the middle
 if middle
   # Cria tabelas para meet me in the middle
@@ -437,6 +443,18 @@ if middle
   current_puzzle  = xdb.query("SELECT * FROM puzzle_xs WHERE id = (SELECT ref FROM puzzle_xs WHERE id = (SELECT MAX(id) FROM puzzle_xs))").first
   last_biteract_index, biteract_index = xdb.query("SELECT MIN(id) - 1, MAX(id) FROM puzzle_xs WHERE iteract = ?", biteract - 1).first.values
   solved = xdb.query("SELECT id FROM puzzle_xs WHERE solved = 1 LIMIT 1").any?
+
+  # Test if solved from biteract_index
+  STDERR.puts "\r#{line}\r-- Testing if already solved --"
+  i = biteract_index
+  j = xdb.query("SELECT MAX(id) AS id FROM puzzle_xs").first[:id]
+  while i < j
+    i += 1
+    if wdb.query("SELECT id FROM puzzles WHERE item = ? and id <= ?", xdb.query("SELECT item FROM puzzle_xs WHERE id = ?", i).first[:item], iteract_index).any?
+      xdb.execute("UPDATE puzzle_xs SET solved = 1 WHERE id = ?", i)
+      solved = true
+    end
+  end
 
   # Main loop
   xdb.execute("BEGIN")
@@ -489,8 +507,8 @@ if middle
   dump_database xdb, filename, solved, append
 else
   solved = wdb.query("SELECT id FROM puzzles WHERE solved = 1 LIMIT 1").any?
-  deadends_fixed.map!{|s| s.gsub(/\|/, ".")}
-  biteract = xdb.tables.include?("puzzle_xs") ? wdb.query("SELECT max(iteract) as iteract from puzzle_xs").first[:iteract] : 0
+  deadends_fixeds = /#{deadends_fixed.map{|s| s.gsub(/\|/, ".")}.join("|")}/
+  biteract = xdb.tables.include?("puzzle_xs") ? xdb.query("SELECT max(iteract) as iteract from puzzle_xs").first[:iteract] : 0
   if biteract > 0 && xdb.query("SELECT id FROM puzzle_xs WHERE solved = 1 LIMIT 1").any?
     STDERR.puts "\r#{line}\r-- Solved in the middle --"
     solution = calc_middle_solution xdb, wdb
@@ -499,6 +517,18 @@ else
     show_solution solution
     dump_database wdb, filename, solved, append
     exit
+
+    # Test if solved from iteract_index
+    STDERR.puts "\r#{line}\r-- Testing if already solved --"
+    i = iteract_index
+    j = wdb.query("SELECT MAX(id) AS id FROM puzzles").first[:id]
+    while i < j
+      i += 1
+      if xdb.query("SELECT id FROM puzzle_xs WHERE item = ? and iteract <= ?", wdb.query("SELECT item FROM puzzles WHERE id = ?", i).first[:item], biteract - 1).any?
+        wdb.execute("UPDATE puzzles SET solved = 1 WHERE id = ?", i)
+        solved = true
+      end
+    end
   end
 
   # Main loop
@@ -538,12 +568,17 @@ else
 
     # Writes new not deadend states
     arry = solve(current_puzzle[:item]).
-        reject{|s| deadends_fixed.map{|d| s.gsub(/\|/, ".").match?(d)}.any?}.
-        select{|s| wdb.query("SELECT id FROM puzzles WHERE item = ? LIMIT 1", s).empty?}.
-        map{|s| [ current_puzzle[:id], s, sol == s.gsub(/x/,"-") ? solved = true : false ]}
+      reject{|s|
+        s.match?(deadends_fixeds) ||
+        (norev && wdb.query("SELECT id FROM puzzles WHERE item = ? LIMIT 1", rev(s)).any?) ||
+        (noturn && wdb.query("SELECT id FROM puzzles WHERE item = ? LIMIT 1", s.reverse).any?) ||
+        (noflip && wdb.query("SELECT id FROM puzzles WHERE item = ? LIMIT 1", flip(s)).any?)
+      }.
+      select{|s| wdb.query("SELECT id FROM puzzles WHERE item = ? LIMIT 1", s).empty?}.
+      map{|s| [ current_puzzle[:id], s, sol == s.gsub(/x/,"-") ? solved = true : false ]}
     wdb.execute_multi("INSERT INTO puzzles(ref, item, solved) VALUES (?, ?, ?)", arry)
     if biteract > 0
-      ids = wdb.query("SELECT id FROM puzzle_xs WHERE item in ('#{arry.map{|a| a[1]}.join("','")}')")
+      ids = xdb.query("SELECT id FROM puzzle_xs WHERE item in ('#{arry.map{|a| a[1]}.join("','")}') and iteract <= ?", biteract - 1)
       if ids.any?
         STDERR.puts "\r#{line}\r-- Solved in the middle --"
         xdb.execute "UPDATE puzzle_xs SET solved = 1 WHERE id IN (#{ids.map{|a| a[:id]}.join(",")})"

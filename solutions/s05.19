@@ -1,0 +1,22 @@
+-- Puzzle: "-o-o-| - - |-XXX-|xxxxx|-XXX-| x x |oo oo" --
+-- Solução: --
+0      1      2      3      4      5      6      7      8      9      10     11     12     13     14     15     16     17     18     19     20
+
+-o-o-  o--o-  o-o--  o-o--  o-o--  oxo--  oxo--  oxo--  oxo--  oxox-  -oxox  --xox  --xox  --xox  --x-x  --x-x  --x-x  --x-x  -xx-x  -xx-x  -xx-x
+ - -    - -    - -    x -    x -    x -    x -    x x    x x    x x    x x    o x    - x    - x    - o    - -    - -    x -    x -    x -    x x
+-xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -oxx-  -oxx-  -oxx-  -oxo-  oxo--  oxo--  ooo--  ooox-  ooox-
+xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xoxxx  xxxxx  xxxxx  xxxxx
+-xxx-  -xxx-  -xxx-  -xxx-  -xxx-  -oxx-  --oxx  --oxx  --oxx  --oox  --oox  -xoox  -xoox  xoo-x  xooxx  xooxx  xooxx  xxoxx  xooxx  xooxx  xooox
+ x x    x x    x x    o x    o x    - x    - x    - o    - o    - -    - -    - -    x -    x -    x -    x x    x x    o x    - x    - o    - -
+oo oo  oo oo  oo oo  o- oo  -o oo  -o oo  -o oo  -o -o  -o o-  -o o-  -o o-  -o o-  -o o-  -o o-  -o o-  -o o-  -o o-  -- o-  -- o-  -- --  -- --
+
+21
+
+-xx-x
+ x x
+-ooox
+xxxxx
+xooox
+ - -
+-- --
+

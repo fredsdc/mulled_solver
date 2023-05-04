@@ -2,21 +2,21 @@
 -- Solução: --
 0      1      2      3      4      5      6      7      8      9      10     11     12     13     14     15     16     17     18     19     20
 
-ox-xo  ox-xo  ox-xo  ox-xo  -oxxo  -oxxo  -oxx-  --oxx  -xoxx  -xoxx  -xoxx  -xoxx  -xoxx  -xoxx  -xoxx  -xoxx  -xoxx  -x-xx  -x-xx  -x-xx  -x-xx
- xxxx   xxxx   xxxx   xxxx   xxxx   xxxx   xxxo   xxxo   xxxo   xxxo   xxxo   xxxo   xxxo   xxxo   xxxo   xxxo   xxx-   xox-   xox-   x-x-   x-x-
---ox-  -o-x-  o--x-  o--x-  o--x-  ox-x-  ox-xx  ox-xx  ox-xx  ox-xx  ox-xx  ox-xx  ox-xx  ox-xx  oxxxx  oxxxx  oxxxo  oxxxo  oxxxo  oxoxo  oxoxo
-xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx
-oxxxo  oxxxo  oxxxo  oxxxo  oxxxo  oxxxo  oxxxo  oxxxo  ooxxo  o-xxo  -oxxo  --xxo  -xxo-  -xxo-  -xxo-  xxo--  xxo-x  xxx-x  xxx-x  xxx-x  xxx-x
- xxxx   xxxx   xxxx   xxxx   xxxx   oxxx   oxxx   oxxx   -xxx   oxxx   oxxx   oxxx   oxxx   oxxx   ooxx   ooxx   ooxx   ooxx   ooxx   oxxx   oxxx
---o--  --o--  --o--  -o---  -o---  -----  -----  -----  -----  -----  -----  -o---  -o---  --o--  -----  -----  -----  --o--  ---o-  --oo-  --o-o
+ox-xo  oxxo-  oxxo-  oxxo-  oxxox  oxxox  oxxox  oxxox  oxxox  oxxox  oxx-x  -oxxx  -oxxx  -oxxx  --xxx  --xxx  --xxx  --xxx  --xxx  --xxx  --xxx
+ xxxx   xxxx   xxxx   xxxx   xxxx   xxxx   xxxx   xxxx   xxxx   xxxx   xxox   xxox   xxox   xxox   oxox   oxox   -xox   -xox   -xox   -xox   -xox
+--ox-  --ox-  --ox-  --oxx  --oxo  -oxo-  o-xo-  o-x-o  oxx-o  oxx-o  oxxxo  oxxxo  -xxxo  -xxxo  -xxxo  -xxxo  -oxxo  -oxxo  -oxxo  -oxxo  -oxxo
+xxxxx  xxxxx  xxxxx  xxxxo  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  xxxx-  oxxx-  -oxxx  -xxxx  -xxxx  -xxxx  -xxxx  -xxxx  -xxxx  -xxxx
+oxxxo  oxxxo  oxxxo  oxxx-  oxxx-  oxxx-  oxxx-  oxxx-  oxxx-  -oxxx  -oxxx  -oxxx  xoxxx  xoxxx  xoxxx  xoxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx
+ xxxx   xxxx   xxxx   xxxx   xxxx   xxxx   xxxx   xxxx   oxxx   oxxx   oxxx   oxxx   oxxx   oxxx   oxxx   oxxx   oxxx   oxxx   -xxx   -xxx   -xxx
+--o--  --o--  -o---  -o---  -o---  -o---  -o---  -o---  -----  -----  -----  -----  -----  -----  -o---  o----  oo---  o-o--  ooo--  o-oo-  o-o-o
 
 21     22
 
--x-xx  -x-xx
- x-x-   x-x-
-oxoxo  oxoxo
+--xxx  --xxx
+ -x-x   -x-x
+-oxoo  oxo-o
+-xxxx  -xxxx
 xxxxx  xxxxx
-xxx-x  xxx-x
  -xxx   -xxx
--oo-o  o-o-o
+o-oxo  o-oxo
 

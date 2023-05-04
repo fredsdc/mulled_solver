@@ -1,140 +1,529 @@
 #!/bin/bash
-while read line; do a="$(sed 's/^[^"]*"//;s/".*//' <<< $line)";printf "%s %02d %02d %02d\n" "$(cut -b -15 <<< $line)" $(($(sed 's/[^_-]//g' <<< \"$a\"|wc -m) - 1)) $(($(sed 's/[^oO]//g' <<< \"$a\"|wc -m) - 1))  $(($(sed 's/[^O_X]//g' <<< \"$a\"|wc -m) - 1));done<<< "$(grep ":" queries |sed 's/\\//'|grep -v "solved")"
+sed -n '/#/{N;s/\n  /  /;s/\\$//p}' < $0
+for i in solutions/*;do a=${i//[^0-9.]/}; [ "$(grep "# $a" < queries | cut -b 10-11|sed 's/^0//')" != "$(grep -o "[0-9]*" $i|tail -n 1)" ] && echo "# of steps differ: $i";done
+for i in $(grep "^# " < queries | grep -v "solved" | cut -b 3-7); do [ -s "solutions/s$i" ] && echo "Solved? $i";done
 exit
 
-01.01: 03/03 solved  -d p01.01 -p "_|-|-|o"
-01.02: 03/03 solved  -d p01.02 -p "ox-_-"
-01.03: 05/05 solved  -d p01.03 -p "o- | x | x | -_| - | - "
-01.04: 03/03 solved  -d p01.04 -p "  o |__xo|  - "
-01.05: 07/07 solved  -d p01.05 -p "  o|  x|--x|- x|-_-|  -"
-01.06: 07/07 solved  -d p01.06 -p "o-xx-|x -  |ox__-"
-01.07: 10/10 solved  -d p01.07 -p "-xxxo| --xx|__- o"
-01.08: 05/05 solved  -d p01.08 -p "  ---|-x-xx| _- o"
-01.09: 12/12 solved  -d p01.09 -p "  _  |ox_xo|-   -|-----"
-01.10: 11/11 solved  -d p01.10 -p " --o| -xx|__ o"
-01.11: 09/09 solved  -d p01.11 -p "-x_x-|- X -|-oxo-"
-01.12: 11/11 solved  -d p01.12 -p "ox_xo|- X -|o_x_o"
-01.13: 08/08 solved  -d p01.13 -p "oxx--| xX_ |oxx--"
-01.14: 08/08 solved  -d p01.14 -p "oxX-o| Xx_ |oxX-o"
-01.15: 09/09 solved  -d p01.15 -p "ooxoo|xX_Xx|--X--"
-01.16: 11/11 solved  -d p01.16 -p "_-o-_|xxxxx|o-_-o"
-01.17: 09/09 solved  -d p01.17 -p "o-x-_|_xxxo|o-x-_"
-01.18: 08/08 solved  -d p01.18 -p "oxx--|_ o_X|oxx--"
-01.19: 09/09 solved  -d p01.19 -p "oxX_o|xxx-x|o_Xxo"
-01.20: 09/09 solved  -d p01.20 -p "xx_-o|-xxxx|_--xo"
-01.21: 11/11 solved  -d p01.21 -p "-XXo-|-oxo-|-oXX-"
-01.22: 04/04 solved  -d p01.22 -p "oX-o | X x |----O"
-01.23: 13/13 solved  -d p01.23 -p "o---o| x x |_-O-_"
-01.24: 11/11 solved  -d p01.24 -p "ox-xo| x-x |_-O-_"
-01.25: 15/15 solved  -d p01.25 -p "ox-xo| xxxx|_-O-_"
+# 01.01: 03/03 solved:
+  ./mulled.rb -d db/d01.01 -p "_|-|-|o" \
+  | tee solutions/s01.01
+# 01.02: 03/03 solved:
+  ./mulled.rb -d db/d01.02 -p "ox-_-" \
+  | tee solutions/s01.02
+# 01.03: 05/05 solved:
+  ./mulled.rb -d db/d01.03 -p "o- | x | x | -_| - | - " \
+  | tee solutions/s01.03
+# 01.04: 03/03 solved:
+  ./mulled.rb -d db/d01.04 -p "  o |__xo|  - " \
+  | tee solutions/s01.04
+# 01.05: 07/07 solved:
+  ./mulled.rb -d db/d01.05 -p "  o|  x|--x|- x|-_-|  -" \
+  | tee solutions/s01.05
+# 01.06: 07/07 solved:
+  ./mulled.rb -d db/d01.06 -p "o-xx-|x -  |ox__-" \
+  | tee solutions/s01.06
+# 01.07: 10/10 solved:
+  ./mulled.rb -d db/d01.07 -p "-xxxo| --xx|__- o" \
+  | tee solutions/s01.07
+# 01.08: 05/05 solved:
+  ./mulled.rb -d db/d01.08 -p "  ---|-x-xx| _- o" \
+  | tee solutions/s01.08
+# 01.09: 12/12 solved:
+  ./mulled.rb -d db/d01.09 -p "  _  |ox_xo|-   -|-----" \
+  | tee solutions/s01.09
+# 01.10: 11/11 solved:
+  ./mulled.rb -d db/d01.10 -p " --o| -xx|__ o" \
+  | tee solutions/s01.10
+# 01.11: 09/09 solved:
+  ./mulled.rb -d db/d01.11 -p "-x_x-|- X -|-oxo-" \
+  | tee solutions/s01.11
+# 01.12: 11/11 solved:
+  ./mulled.rb -d db/d01.12 -p "ox_xo|- X -|o_x_o" \
+  | tee solutions/s01.12
+# 01.13: 08/08 solved:
+  ./mulled.rb -d db/d01.13 -p "oxx--| xX_ |oxx--" \
+  | tee solutions/s01.13
+# 01.14: 08/08 solved:
+  ./mulled.rb -d db/d01.14 -p "oxX-o| Xx_ |oxX-o" \
+  | tee solutions/s01.14
+# 01.15: 09/09 solved:
+  ./mulled.rb -d db/d01.15 -p "ooxoo|xX_Xx|--X--" \
+  | tee solutions/s01.15
+# 01.16: 11/11 solved:
+  ./mulled.rb -d db/d01.16 -p "_-o-_|xxxxx|o-_-o" \
+  | tee solutions/s01.16
+# 01.17: 09/09 solved:
+  ./mulled.rb -d db/d01.17 -p "o-x-_|_xxxo|o-x-_" \
+  | tee solutions/s01.17
+# 01.18: 08/08 solved:
+  ./mulled.rb -d db/d01.18 -p "oxx--|_ o_X|oxx--" \
+  | tee solutions/s01.18
+# 01.19: 09/09 solved:
+  ./mulled.rb -d db/d01.19 -p "oxX_o|xxx-x|o_Xxo" \
+  | tee solutions/s01.19
+# 01.20: 09/09 solved:
+  ./mulled.rb -d db/d01.20 -p "xx_-o|-xxxx|_--xo" \
+  | tee solutions/s01.20
+# 01.21: 11/11 solved:
+  ./mulled.rb -d db/d01.21 -p "-XXo-|-oxo-|-oXX-" \
+  | tee solutions/s01.21
+# 01.22: 04/04 solved:
+  ./mulled.rb -d db/d01.22 -p "oX-o | X x |----O" \
+  | tee solutions/s01.22
+# 01.23: 13/13 solved:
+  ./mulled.rb -d db/d01.23 -p "o---o| x x |_-O-_" \
+  | tee solutions/s01.23
+# 01.24: 11/11 solved:
+  ./mulled.rb -d db/d01.24 -p "ox-xo| x-x |_-O-_" \
+  | tee solutions/s01.24
+# 01.25: 15/15 solved:
+  ./mulled.rb -d db/d01.25 -p "ox-xo| xxxx|_-O-_" \
+  | tee solutions/s01.25
 
-02.01: 11/11 solved  -d p02.01 -p "ox_xo|xxxxx|-xox-|_- -_"
-02.02: 11/11 solved  -d p02.02 -p "oxxx-|-xXx-|-xXx-|-xxxo"
-02.03: 11/11 solved  -d p02.03 -p "oxx_-| x-x-|_-xx-| -o- "
-02.04: 09/09 solved  -d p02.04 -p "ox_xo|x-x-x|xxXxx|_oxo_"
-02.05: 12/12 solved  -d p02.05 -p "o-X-o|x x x|x-X-x|_oxo_"
-02.06: 17/20 solved  -d p02.06 -p "o-o-o|  x  |_-X-_|_oxo_"
-02.07: 08/08 solved  -d p02.07 -p " -_- |x-x-x|_xxx_| ooo "
-02.08: 11/11 solved  -d p02.08 -p "ox_xo| - - | xXx |o_x_o"
-02.09: 10/10 solved  -d p02.09 -p " - - |ox_xo| xXx |o_x_o"
-02.10: 12/12 solved  -d p02.10 -p " - - |ox_xo| x x |o_X_o"
-02.11: 06/06 solved  -d p02.11 -p " _ o |ox-x_|_x-xo| o _ "
-02.12: 20/20 solved  -d p02.12 -p "-    |oox__|x Ox-|oox__"
-02.13: 14/14 solved  -d p02.13 -p " o-o |_x x_|_x x_| o-o "
-02.14: 10/10 solved  -d p02.14 -p "  _  |ox_xo|ox_xo|  _  "
-02.15: 14/14 solved  -d p02.15 -p " -_- |ox-xo|oxxxo| ___ "
-02.16: 20/22 solved  -d p02.16 -p "__ __|-----|xxxxx|oo oo"
-02.17: 10/11 solved  -d p02.17 -p "ox-xo| _xX-|-Xx_ |ox-xo"
-02.18: 11/14 solved  -d p02.18 -p "-_xoo|_x-o |_xxo |-_-  "
-02.19: 13/15 solved  -d p02.19 -p "--xoo|_Xx  |_Xxoo|---  "
-02.20: 12/12 solved  -d p02.20 -p "_---_| xox |-xxx-|o-X-o"
-02.21: 11/12 solved  -d p02.21 -p "o _ _|xox--|oxXox|_ _ o"
-02.22: 06/06 solved  -d p02.22 -p "-xx--|-xXxo|oxXx-|-xx--"
-02.23: 11/11 solved  -d p02.23 -p "oxx--|--xX-|--xX-|oxx--"
-02.24: 09/09 solved  -d p02.24 -p "o-x--|-xxx-| xxx_|_--o "
-02.25: 20/27 solved  -d p02.25 -p "--xoo|_Xx o|_Oxo |__ o "
+# 02.01: 11/11 solved:
+  ./mulled.rb -d db/d02.01 -p "ox_xo|xxxxx|-xox-|_- -_" \
+  | tee solutions/s02.01
+# 02.02: 11/11 solved:
+  ./mulled.rb -d db/d02.02 -p "oxxx-|-xXx-|-xXx-|-xxxo" \
+  | tee solutions/s02.02
+# 02.03: 11/11 solved:
+  ./mulled.rb -d db/d02.03 -p "oxx_-| x-x-|_-xx-| -o- " \
+  | tee solutions/s02.03
+# 02.04: 09/09 solved:
+  ./mulled.rb -d db/d02.04 -p "ox_xo|x-x-x|xxXxx|_oxo_" \
+  | tee solutions/s02.04
+# 02.05: 12/12 solved:
+  ./mulled.rb -d db/d02.05 -p "o-X-o|x x x|x-X-x|_oxo_" \
+  | tee solutions/s02.05
+# 02.06: 17/20 solved:
+  ./mulled.rb -d db/d02.06 -p "o-o-o|  x  |_-X-_|_oxo_" \
+  | tee solutions/s02.06
+# 02.07: 08/08 solved:
+  ./mulled.rb -d db/d02.07 -p " -_- |x-x-x|_xxx_| ooo " \
+  | tee solutions/s02.07
+# 02.08: 11/11 solved:
+  ./mulled.rb -d db/d02.08 -p "ox_xo| - - | xXx |o_x_o" \
+  | tee solutions/s02.08
+# 02.09: 10/10 solved:
+  ./mulled.rb -d db/d02.09 -p " - - |ox_xo| xXx |o_x_o" \
+  | tee solutions/s02.09
+# 02.10: 12/12 solved:
+  ./mulled.rb -d db/d02.10 -p " - - |ox_xo| x x |o_X_o" \
+  | tee solutions/s02.10
+# 02.11: 06/06 solved:
+  ./mulled.rb -d db/d02.11 -p " _ o |ox-x_|_x-xo| o _ " \
+  | tee solutions/s02.11
+# 02.12: 20/20 solved:
+  ./mulled.rb -d db/d02.12 -p "-    |oox__|x Ox-|oox__" \
+  | tee solutions/s02.12
+# 02.13: 14/14 solved:
+  ./mulled.rb -d db/d02.13 -p " o-o |_x x_|_x x_| o-o " \
+  | tee solutions/s02.13
+# 02.14: 10/10 solved:
+  ./mulled.rb -d db/d02.14 -p "  _  |ox_xo|ox_xo|  _  " \
+  | tee solutions/s02.14
+# 02.15: 14/14 solved:
+  ./mulled.rb -d db/d02.15 -p " -_- |ox-xo|oxxxo| ___ " \
+  | tee solutions/s02.15
+# 02.16: 21/22 solved:
+  ./mulled.rb -d db/d02.16 -p "__ __|-----|xxxxx|oo oo" \
+  | tee solutions/s02.16
+# 02.17: 10/11 solved:
+  ./mulled.rb -d db/d02.17 -p "ox-xo| _xX-|-Xx_ |ox-xo" \
+  | tee solutions/s02.17
+# 02.18: 11/14 solved:
+  ./mulled.rb -d db/d02.18 -p "-_xoo|_x-o |_xxo |-_-  " \
+  | tee solutions/s02.18
+# 02.19: 13/15 solved:
+  ./mulled.rb -d db/d02.19 -p "--xoo|_Xx  |_Xxoo|---  " \
+  | tee solutions/s02.19
+# 02.20: 12/12 solved:
+  ./mulled.rb -d db/d02.20 -p "_---_| xox |-xxx-|o-X-o" \
+  | tee solutions/s02.20
+# 02.21: 11/12 solved:
+  ./mulled.rb -d db/d02.21 -p "o _ _|xox--|oxXox|_ _ o" \
+  | tee solutions/s02.21
+# 02.22: 06/06 solved:
+  ./mulled.rb -d db/d02.22 -p "-xx--|-xXxo|oxXx-|-xx--" \
+  | tee solutions/s02.22
+# 02.23: 11/11 solved:
+  ./mulled.rb -d db/d02.23 -p "oxx--|--xX-|--xX-|oxx--" \
+  | tee solutions/s02.23
+# 02.24: 09/09 solved:
+  ./mulled.rb -d db/d02.24 -p "o-x--|-xxx-| xxx_|_--o " \
+  | tee solutions/s02.24
+# 02.25: 23/27 solved:
+  ./mulled.rb -d db/d02.25 -p "--xoo|_Xx o|_Oxo |__ o " \
+  | tee solutions/s02.25
 
-03.01: 15/18 solved  -d p03.01 -p "  oo |--x o|_xxxo|_-x- |-__- "
-03.02: 14/14 solved  -d p03.02 -p "oxxxo|-xXx-|-X X-|-xXx-|oxxxo"
-03.03: 20/24 solved  -d p03.03 -p "o-x-o|- X -|xXxXx|- X -|o-x-o"
-03.04: 10/10 solved  -d p03.04 -p " _ _ | --- |-xxx-| -x- | o o "
-03.05: 14/14 solved  -d p03.05 -p "o x-o|-xxx |- Xx_|-xx- |_ x-o"
-03.06: 20/26 solved  -d p03.06 -p " ooo |oxxxo|xxxxx|-_x_-| ___ "
-03.07: 13/13 solved  -d p03.07 -p "ox-xo|xXxXx|-x-x-|xXxXx|ox-xo"
-03.08: 12/15 solved  -d p03.08 -p "-----|xxoxx|oxxxo|xxxxx|-___-"
-03.09: 19/25 solved  -d p03.09 -p "_-o-_|_x-x_| x-x |ox_xo| o o "
-03.10: 12/12 solved  -d p03.10 -p "-o-x-|xxxxo|-x-x-|_xxxx|-x-_-"
-03.11: 11/11 solved  -d p03.11 -p "_--xo|--xx-|xxxxx|-xx--|ox--_"
-03.12: 14/14 solved  -d p03.12 -p "_ o _|--x--|xx-xx|x-x-x|o _ o"
-03.13: 11/11 solved  -d p03.13 -p " -o -| -xx-|-xXxX|x-- x|o _-o"
-03.14: 20/20 solved  -d p03.14 -p "o o o|x_x_x|OxXxO|x_x_x|o - o"
-03.15: 20/25 solved  -d p03.15 -p "o __-|x __-|oxX-x|x x x|oxoxo"
-03.16: 10/10 solved  -d p03.16 -p " o o |-x_x |xx_x |xx_x |oxx--"
-03.17: 16/17 solved  -d p03.17 -p "o - o|xxxx-|xxox |-x--_|-_ _ "
-03.18: 32/37 solved  -d p03.18 -p "__- o|-X_ o|-  -x|-xxx-|o -xo"
-03.19: 20/27 solved  -d p03.19 -p "---x-|xoxxo|-  x |__ x |-_ o-"
-03.20: 20/20 solved  -d p03.20 -p "-ox_-| x __| x  -|oxxox|-xx--"
-03.21: 17/19 solved  -d p03.21 -p "_- o-|-xxxx|_o x-|-xxxx|_- o-"
-03.22: 18/19 solved  -d p03.22 -p "o-xx-|--x x|xx-xx|x x _|-x-_o"
-03.23: 17/19 solved  -d p03.23 -p "_-o-o| x x |-xXx-|x-xxx|o _ O"
-03.24: 14/14 solved  -d p03.24 -p "-- _-|xxx--|_- xx|xxxxx|o- -o"
-03.25: 15/15 solved  -d p03.25 -p "ox-xo|xXxXx|-xxx-|xXxXx|ox-xo"
+# 03.01: 15/18 solved:
+  ./mulled.rb -d db/d03.01 -p "  oo |--x o|_xxxo|_-x- |-__- " \
+  | tee solutions/s03.01
+# 03.02: 14/14 solved:
+  ./mulled.rb -d db/d03.02 -p "oxxxo|-xXx-|-X X-|-xXx-|oxxxo" \
+  | tee solutions/s03.02
+# 03.03: 21/24 solved:
+  ./mulled.rb -d db/d03.03 -p "o-x-o|- X -|xXxXx|- X -|o-x-o" \
+  | tee solutions/s03.03
+# 03.04: 10/10 solved:
+  ./mulled.rb -d db/d03.04 -p " _ _ | --- |-xxx-| -x- | o o " \
+  | tee solutions/s03.04
+# 03.05: 14/14 solved:
+  ./mulled.rb -d db/d03.05 -p "o x-o|-xxx |- Xx_|-xx- |_ x-o" \
+  | tee solutions/s03.05
+# 03.06: 20/26 solved:
+  ./mulled.rb -d db/d03.06 -p " ooo |oxxxo|xxxxx|-_x_-| ___ " \
+  -f " ... |.....|.....|.....| x.. " -f " ... |.....|.....|.....| .x. " \
+  -f " ... |.....|.....|.....| ..x " -f " ... |.....|.....|xxxxx| --- " \
+  | tee solutions/s03.06
+# 03.07: 13/13 solved:
+  ./mulled.rb -d db/d03.07 -p "ox-xo|xXxXx|-x-x-|xXxXx|ox-xo" \
+  | tee solutions/s03.07
+# 03.08: 12/15 solved:
+  ./mulled.rb -d db/d03.08 -p "-----|xxoxx|oxxxo|xxxxx|-___-" \
+  | tee solutions/s03.08
+# 03.09: 19/25 solved:
+  ./mulled.rb -d db/d03.09 -p "_-o-_|_x-x_| x-x |ox_xo| o o " \
+  -f ".....|.....| ... |xxx..| x . " -f ".....|.....| ... |..xxx| . x " \
+  -f ".....|x....| ... |.....| . . " -f ".....|....x| ... |.....| . . " \
+  | tee solutions/s03.09
+# 03.10: 12/12 solved:
+  ./mulled.rb -d db/d03.10 -p "-o-x-|xxxxo|-x-x-|_xxxx|-x-_-" \
+  | tee solutions/s03.10
+# 03.11: 11/11 solved:
+  ./mulled.rb -d db/d03.11 -p "_--xo|--xx-|xxxxx|-xx--|ox--_" \
+  | tee solutions/s03.11
+# 03.12: 14/14 solved:
+  ./mulled.rb -d db/d03.12 -p "_ o _|--x--|xx-xx|x-x-x|o _ o" \
+  | tee solutions/s03.12
+# 03.13: 11/11 solved:
+  ./mulled.rb -d db/d03.13 -p " -o -| -xx-|-xXxX|x-- x|o _-o" \
+  | tee solutions/s03.13
+# 03.14: 20/20 solved:
+  ./mulled.rb -d db/d03.14 -p "o o o|x_x_x|OxXxO|x_x_x|o - o" \
+  | tee solutions/s03.14
+# 03.15: 24/25 solved:
+  ./mulled.rb -d db/d03.15 -p "o __-|x __-|oxX-x|x x x|oxoxo" \
+  | tee solutions/s03.15
+# 03.16: 10/10 solved:
+  ./mulled.rb -d db/d03.16 -p " o o |-x_x |xx_x |xx_x |oxx--" \
+  | tee solutions/s03.16
+# 03.17: 16/17 solved:
+  ./mulled.rb -d db/d03.17 -p "o - o|xxxx-|xxox |-x--_|-_ _ " \
+  | tee solutions/s03.17
+# 03.18: 32/37 solved:
+  ./mulled.rb -d db/d03.18 -p "__- o|-X_ o|-  -x|-xxx-|o -xo" \
+  -f "... x|... x|.  .x|....x|. xxo" -f "... x|... x|.  xx|...xx|. xox" \
+  -f "... x|... x|.  xo|....x|. ..x" -f "... x|... x|.  ox|...xx|. .xx" \
+  -f "... .|..x .|.  ..|.....|. ..." \
+  | tee solutions/s03.18
+# 03.19: 24/27 solved:
+  ./mulled.rb -d db/d03.19 -p "---x-|xoxxo|-  x |__ x |-_ o-" \
+  | tee solutions/s03.19
+# 03.20: 20/20 solved:
+  ./mulled.rb -d db/d03.20 -p "-ox_-| x __| x  -|oxxox|-xx--" \
+  | tee solutions/s03.20
+# 03.21: 17/19 solved:
+  ./mulled.rb -d db/d03.21 -p "_- o-|-xxxx|_o x-|-xxxx|_- o-" \
+  | tee solutions/s03.21
+# 03.22: 18/19 solved:
+  ./mulled.rb -d db/d03.22 -p "o-xx-|--x x|xx-xx|x x _|-x-_o" \
+  | tee solutions/s03.22
+# 03.23: 17/19 solved:
+  ./mulled.rb -d db/d03.23 -p "_-o-o| x x |-xXx-|x-xxx|o _ O" \
+  | tee solutions/s03.23
+# 03.24: 14/14 solved:
+  ./mulled.rb -d db/d03.24 -p "-- _-|xxx--|_- xx|xxxxx|o- -o" \
+  | tee solutions/s03.24
+# 03.25: 15/15 solved:
+  ./mulled.rb -d db/d03.25 -p "ox-xo|xXxXx|-xxx-|xXxXx|ox-xo" \
+  | tee solutions/s03.25
 
-04.01: 13/15 solved  -d p04.01 -p "  o  |  x  |--o--|xxxxx|-xXx-|--_--"
-04.02: 17/17 solved  -d p04.02 -p "ox-xo|xxxxx|--x--|xxxxx|--x--|_---_"
-04.03: 17/20 solved  -d p04.03 -p " _ _ |_---_| - - |-xox-| x x |o-o-o"
-04.04: 20/20 solved  -d p04.04 -p "ox-xo| x x |-Xx_-|-_xX-| x x |ox-xo"
-04.05: 16/16 solved  -d p04.05 -p "ox-xo|- X -|-x-x-| x x |-x-x-|_o -_"
-04.06: 20/26 solved  -d p04.06 -p "o-x-o|-xXx-|x X x|x X x|-xXx-|o-x-o"
-04.07: 16/16 solved  -d p04.07 -p "_-x-_|x-x--|oxxx-|xxxxx|xxxxx|x- -o"
-04.08:   /43         -d p04.08 -p "ox-x-|XXxxo|-Xxxo|-Xxxo|XXxxo|ox-x-" -f "xx...|-x...|x....|.....|.....|....." -f ".....|.....|.....|x....|-x...|xx..." -f "-x...|x....|x....|.....|.....|....." -f ".....|.....|.....|x....|x....|-x..." -f ".....|x....|x....|x....|.....|....." -f ".....|.....|x....|x....|x....|....." -f ".xxxx|.xxxx|.....|.....|.....|....." -f ".....|.....|.....|.....|.xxxx|.xxxx" -f "x....|x....|.....|.....|.....|....." -f ".....|.....|.....|.....|x....|x...."
-04.09: 15/16 solved  -d p04.09 -p " oxox| x_xo| xxx | _ x-| -_o |   -_"
-04.10: 12/13 solved  -d p04.10 -p "x-x-x|xxx-o|-xxxx|__xxx|xx_x-|xoxxo"
-04.11: 13/16 solved  -d p04.11 -p "oxoox| xxx_|oxxx-|x_x_x|xxx-_|-xx--"
-04.12: 17/17 solved  -d p04.12 -p "--x- |xxxxo|-X-x |xx x-|oxxX-|O-x--"
-04.13: 10/12 solved  -d p04.13 -p "ox-x-|-xxx-| x_x-|-x_x |-xxx-|-x-xo"
-04.14: 20/22 solved  -d p04.14 -p "o-x-o|xxXx-|x Xx |x-Xx |xxXx-|o- -o"
-04.15: 19/19 solved  -d p04.15 -p "ox-x-|-xxx-|x Xxx|-xX -|-xxx-|-x-xo"
-04.16: 20/24 solved  -d p04.16 -p "-ox--|-xxxx| xxxx| -oxx|  x o|  ___"
-04.17: 15/17 solved  -d p04.17 -p "-xx_x|-xox-|-xXX-| xxxx|oox_ |o-xx-"
-04.18: 17/22 solved  -d p04.18 -p "oxx-o|-xxx-|xxxxx|-xXxo|x-XXx|-xx- "
-04.19: 28/30 solved  -d p04.19 -p "ooxoo|oxXxo|X_XXX|XXX_X|oxXxo|ooxoo" -f ".....|x....|x....|x....|.....|....." -f ".....|....x|....x|....x|.....|....." -f ".....|.....|x....|x....|x....|....." -f ".....|.....|....x|....x|....x|....." -f "xx...|-x...|x....|x....|.....|....." -f ".....|.....|x....|x....|-x...|xx..." -f "...xx|...x-|....x|....x|.....|....." -f ".....|.....|....x|....x|...x-|...xx" -f "....x|.....|....x|....x|.....|....x" -f "x....|.....|x....|x....|.....|x...."
-04.20: 20/31 solved  -d p04.20 -p "ox-xo|xxxxx|x-x-x|-xox-|xXXXx|oX-Xo"
-04.21: 24/43 solved  -d p04.21 -p "oxoxo|x-x-x|xXXXo|oX-Xx|xXXXx|oxoxo" -f ".....|.....|.....|.....|.xx..|xxxxx" -f ".....|.....|.....|.....|..xx.|xxxxx" -f "x....|xx...|xx...|xx...|x....|x...." -f "x....|x....|xx...|xx...|xx...|x...." -f "xx...|x....|xx...|xx...|x....|x...." -f "xx...|x....|x....|xx...|xx...|x...." -f "x....|xx...|x....|xx...|xx...|x...." -f "....x|...xx|...xx|...xx|....x|....x" -f "....x|....x|...xx|...xx|...xx|....x" -f "...xx|....x|...xx|...xx|....x|....x" \
-                                                                        -f "...xx|....x|....x|...xx|...xx|....x" -f "....x|...xx|....x|...xx|...xx|....x" -f "xxxxx|xxxxx|.xx..|.....|.....|....." -f "xxxxx|xxxxx|..xx.|.....|.....|....."
-04.22: 20/31 solved  -d p04.22 -p "ooooo|XX-xx|-XxXX|XXxX-|xx-XX|ooooo"
-04.23:   /51         -d p04.23 -p "o-x-o|oxxxo|ox-xo|xxxxx|XXXXX|O-X-O" -f "x....|x....|x....|x....|x....|....." -f "oxxxo|oxxxo|oxxxo|x...x|x...x|....." -f "....x|....x|....x|....x|....x|....." -f ".....|.....|.....|.....|xx...|--x.." -f ".....|.....|.....|.....|x....|-x..." -f ".....|.....|.....|.....|...xx|..x--" -f ".....|.....|.....|.....|....x|...x-" -f ".....|.....|.....|.....|.....|.xx.." -f ".....|.....|.....|.....|.....|..xx."
-04.24: 18/18 solved  -d p04.24 -p "---- |-xxx-|_x xo| xXxx|-xxxx|-xox-"
-04.25:   /58         -d p04.25 -p "O-X-O|XXXXX|xxxxx|oxxxo|oxxxo|o-x-o" -f ".xx..|.....|.....|.....|.....|....." -f ".....|x....|x....|x....|x....|x...." -f ".....|....x|....x|....x|....x|....x" -f ".....|x...x|x...x|oxxxo|oxxxo|oxxxo" -f "..x--|...xx|.....|.....|.....|....." -f "--x..|xx...|.....|.....|.....|....." -f "...x-|....x|.....|.....|.....|....." -f "-x...|x....|.....|.....|.....|....." -f "..xx.|.....|.....|.....|.....|....."
+# 04.01: 13/15 solved:
+  ./mulled.rb -d db/d04.01 -p "  o  |  x  |--o--|xxxxx|-xXx-|--_--" \
+  | tee solutions/s04.01
+# 04.02: 17/17 solved:
+  ./mulled.rb -d db/d04.02 -p "ox-xo|xxxxx|--x--|xxxxx|--x--|_---_" \
+  -f ".....|.....|.....|.....|....x|...x-" -f "-x...|x....|.....|.....|.....|....." \
+  -f ".....|.....|.....|.....|...xx|..x--" -f "--x..|xx...|.....|.....|.....|....." \
+  -f ".....|.....|.....|.....|..xxx|.x---" -f "---x.|xxx..|.....|.....|.....|....." \
+  | tee solutions/s04.02
+# 04.03: 17/20 solved:
+  ./mulled.rb -d db/d04.03 -p " _ _ |_---_| - - |-xox-| x x |o-o-o" \
+  | tee solutions/s04.03
+# 04.04: 20/20 solved:
+  ./mulled.rb -d db/d04.04 -p "ox-xo| x x |-Xx_-|-_xX-| x x |ox-xo" \
+  | tee solutions/s04.04
+# 04.05: 16/16 solved:
+  ./mulled.rb -d db/d04.05 -p "ox-xo|- X -|-x-x-| x x |-x-x-|_o -_" \
+  | tee solutions/s04.05
+# 04.06: 20/26 solved:
+  ./mulled.rb -d db/d04.06 -p "o-x-o|-xXx-|x X x|x X x|-xXx-|o-x-o" \
+  | tee solutions/s04.06
+# 04.07: 16/16 solved:
+  ./mulled.rb -d db/d04.07 -p "_-x-_|x-x--|oxxx-|xxxxx|xxxxx|x- -o" \
+  | tee solutions/s04.07
+# 04.08:   /43       :
+  ./mulled.rb -d db/d04.08 -p "ox-x-|XXxxo|-Xxxo|-Xxxo|XXxxo|ox-x-" \
+  -f "xx...|-x...|x....|.....|.....|....." -f ".....|.....|.....|x....|-x...|xx..." \
+  -f "-x...|x....|x....|.....|.....|....." -f ".....|.....|.....|x....|x....|-x..." \
+  -f ".....|x....|x....|x....|.....|....." -f ".....|.....|x....|x....|x....|....." \
+  -f ".xxxx|.xxxx|.....|.....|.....|....." -f ".....|.....|.....|.....|.xxxx|.xxxx" \
+  -f "x....|x....|.....|.....|.....|....." -f ".....|.....|.....|.....|x....|x...." \
+  | tee solutions/s04.08
+# 04.09: 15/16 solved:
+  ./mulled.rb -d db/d04.09 -p " oxox| x_xo| xxx | _ x-| -_o |   -_" \
+  | tee solutions/s04.09
+# 04.10: 12/13 solved:
+  ./mulled.rb -d db/d04.10 -p "x-x-x|xxx-o|-xxxx|__xxx|xx_x-|xoxxo" \
+  | tee solutions/s04.10
+# 04.11: 13/16 solved:
+  ./mulled.rb -d db/d04.11 -p "oxoox| xxx_|oxxx-|x_x_x|xxx-_|-xx--" \
+  | tee solutions/s04.11
+# 04.12: 17/17 solved:
+  ./mulled.rb -d db/d04.12 -p "--x- |xxxxo|-X-x |xx x-|oxxX-|O-x--" \
+  | tee solutions/s04.12
+# 04.13: 10/12 solved:
+  ./mulled.rb -d db/d04.13 -p "ox-x-|-xxx-| x_x-|-x_x |-xxx-|-x-xo" \
+  | tee solutions/s04.13
+# 04.14: 20/22 solved:
+  ./mulled.rb -d db/d04.14 -p "o-x-o|xxXx-|x Xx |x-Xx |xxXx-|o- -o" \
+  -f ".....|.....|. .. |xx.. |xx...|xo .." -f ".....|.....|. .. |.... |....x|.. xo" \
+  | tee solutions/s04.14
+# 04.15: 19/19 solved:
+  ./mulled.rb -d db/d04.15 -p "ox-x-|-xxx-|x Xxx|-xX -|-xxx-|-x-xo" \
+  | tee solutions/s04.15
+# 04.16: 20/24 solved:
+  ./mulled.rb -d db/d04.16 -p "-ox--|-xxxx| xxxx| -oxx|  x o|  ___" \
+  -f ".....|.....| ....| ....|  . .|  .x." -f ".....|.....| ....| ....|  . .|  x.." \
+  | tee solutions/s04.16
+# 04.17: 15/17 solved:
+  ./mulled.rb -d db/d04.17 -p "-xx_x|-xox-|-xXX-| xxxx|oox_ |o-xx-" \
+  -f ".....|.....|.....| ....|...x |...xx" -f ".....|.....|.....| ....|...x |..xx-" \
+  -f ".....|.....|.....| ....|x... |oxxxx" -f ".....|.....|.....| ....|.... |xxxxo" \
+  | tee solutions/s04.17
+# 04.18: 17/22 solved:
+  ./mulled.rb -d db/d04.18 -p "oxx-o|-xxx-|xxxxx|-xXxo|x-XXx|-xx- " \
+  -f ".....|.....|.....|.....|...xx|...x " -f "xxx..|xxx..|xxx..|xxx..|.....|.... " \
+  -f "..xxx|..xxx|..xxx|..xxx|.....|.... " -f "...xx|...xx|...xx|...xx|...xx|.... " \
+  -f ".....|.....|.....|.....|.xxx.|xxxx " \
+  | tee solutions/s04.18
+# 04.19: 28/30 xsolved:
+  ./mulled.rb -d db/d04.19 -p "ooxoo|oxXxo|X_XXX|XXX_X|oxXxo|ooxoo" \
+  -f ".....|x....|x....|x....|.....|....." -f ".....|....x|....x|....x|.....|....." \
+  -f ".....|.....|x....|x....|x....|....." -f ".....|.....|....x|....x|....x|....." \
+  -f "xx...|-x...|x....|x....|.....|....." -f ".....|.....|x....|x....|-x...|xx..." \
+  -f "...xx|...x-|....x|....x|.....|....." -f ".....|.....|....x|....x|...x-|...xx" \
+  -f "....x|.....|....x|....x|.....|....x" -f "x....|.....|x....|x....|.....|x...." \
+  | tee solutions/s04.19
+# 04.20: 23/31 solved:
+  ./mulled.rb -d db/d04.20 -p "ox-xo|xxxxx|x-x-x|-xox-|xXXXx|oX-Xo" \
+  -f ".....|.....|.....|.....|.....|.xx.." -f ".....|.....|.....|.....|.....|..xx." \
+  -f ".....|.....|.....|.....|xx...|x-x.." -f ".....|.....|.....|.....|...xx|..x-x" \
+  -f ".....|.....|.....|.....|xxx..|x--x." -f ".....|.....|.....|.....|..xxx|.x--x" \
+  -f ".....|.....|.....|.....|xxxx.|x---x" -f ".....|.....|.....|.....|.xxxx|x---x" \
+  | tee solutions/s04.20
+# 04.21: 24/43 xsolved:
+  ./mulled.rb -d db/d04.21 -p "oxoxo|x-x-x|xXXXo|oX-Xx|xXXXx|oxoxo" \
+  -f ".....|.....|.....|.....|.xx..|xxxxx" -f ".....|.....|.....|.....|..xx.|xxxxx" \
+  -f "x....|xx...|xx...|xx...|x....|x...." -f "x....|x....|xx...|xx...|xx...|x...." \
+  -f "xx...|x....|xx...|xx...|x....|x...." -f "xx...|x....|x....|xx...|xx...|x...." \
+  -f "x....|xx...|x....|xx...|xx...|x...." -f "....x|...xx|...xx|...xx|....x|....x" \
+  -f "....x|....x|...xx|...xx|...xx|....x" -f "...xx|....x|...xx|...xx|....x|....x" \
+  -f "...xx|....x|....x|...xx|...xx|....x" -f "....x|...xx|....x|...xx|...xx|....x" \
+  -f "xxxxx|xxxxx|.xx..|.....|.....|....." -f "xxxxx|xxxxx|..xx.|.....|.....|....." \
+  | tee solutions/s04.21
+# 04.22: 25/31 solved:
+  ./mulled.rb -d db/d04.22 -p "ooooo|XX-xx|-XxXX|XXxX-|xx-XX|ooooo" \
+  -f "xx...|-x...|x....|.....|.....|....." -f ".....|.....|.....|....x|...x-|...xx" \
+  -f ".....|x....|x....|x....|.....|....." -f ".....|.....|....x|....x|....x|....." \
+  -f ".....|.....|x....|x....|x....|....." -f ".....|....x|....x|....x|.....|....." \
+  -f "x....|.....|x....|x....|.....|x...." -f "....x|.....|....x|....x|.....|....x" \
+  | tee solutions/s04.22
+# 04.23:   /51       :
+  ./mulled.rb -d db/d04.23 -p "o-x-o|oxxxo|ox-xo|xxxxx|XXXXX|O-X-O" \
+  -f "x....|x....|x....|x....|x....|....." -f "oxxxo|oxxxo|oxxxo|x...x|x...x|....." \
+  -f "oxxxo|x...x|x...x|x...x|x...x|....." -f "oxxxo|oxxxo|x...x|x...x|x...x|....." \
+  -f "oxxxo|oxxxx|x...x|x...x|x...x|....." -f "oxxxo|xxxxo|x...x|x...x|x...x|....." \
+  -f "oxxxx|x....|x....|x....|x....|....." -f "xxxxo|....x|....x|....x|....x|....." \
+  -f "oxxxx|oxxxx|x....|x....|x....|....." -f "xxxxo|xxxxo|....x|....x|....x|....." \
+  -f "xxxxx|oxxxx|x....|x....|x....|....." -f "xxxxx|xxxxo|....x|....x|....x|....." \
+  -f "xxxxx|oxxxx|oxxxx|x....|x....|....." -f "xxxxx|xxxxo|xxxxo|....x|....x|....." \
+  -f "xxxxx|xxxxx|oxxxx|x....|x....|....." -f "xxxxx|xxxxx|xxxxo|....x|....x|....." \
+  -f "oxxxx|xxxxx|oxxxx|x....|x....|....." -f "xxxxo|xxxxx|xxxxo|....x|....x|....." \
+  -f "oxxxx|oxxxx|oxxxx|x....|x....|....." -f "xxxxo|xxxxo|xxxxo|....x|....x|....." \
+  -f "....x|....x|....x|....x|....x|....." -f ".....|.....|.....|.....|xx...|--x.." \
+  -f ".....|.....|.....|.....|x....|-x..." -f ".....|.....|.....|.....|...xx|..x--" \
+  -f ".....|.....|.....|.....|xxx..|---x." -f ".....|.....|.....|.....|..xxx|.x---" \
+  -f ".....|.....|.....|.....|....x|...x-" -f ".....|.....|.....|.....|.....|.xx.." \
+  -f ".....|.....|.....|.....|.....|..xx." \
+  | tee solutions/s04.23
+# 04.24: 18/18 solved:
+  ./mulled.rb -d db/d04.24 -p "---- |-xxx-|_x xo| xXxx|-xxxx|-xox-" \
+  | tee solutions/s04.24
+# 04.25:   /58       :
+  ./mulled.rb -d db/d04.25 -p "O-X-O|XXXXX|xxxxx|oxxxo|oxxxo|o-x-o" \
+  -f ".xx..|.....|.....|.....|.....|....." -f ".....|x....|x....|x....|x....|x...." \
+  -f ".....|....x|....x|....x|....x|....x" -f ".....|x...x|x...x|oxxxo|oxxxo|oxxxo" \
+  -f "..x--|...xx|.....|.....|.....|....." -f "--x..|xx...|.....|.....|.....|....." \
+  -f "...x-|....x|.....|.....|.....|....." -f "-x...|x....|.....|.....|.....|....." \
+  -f "..xx.|.....|.....|.....|.....|....." \
+  | tee solutions/s04.25
 
-05.01: 14/14 solved  -d p05.01 -p " -   | o   |ox-__| x--_|ox  _| o   | -   "
-05.02: 12/12 solved  -d p05.02 -p "ox_xo| - - | x_x | x x | x_x | x x |ox_xo"
-05.03: 17/18 solved  -d p05.03 -p "-x-x-|-xXx-|xxxxx|ox xo|xxXxx|-xxx-|-xxx-"
-05.04:   /30         -d p05.04 -p " x_xo|ox-xo| xxxx|_xOxX|ox-xo| xxxx|_-O-_" -f " ....|.....| ....|.....|.....| ..xx|..x--" -f " ....|.....| ....|.....|.....| .xxx|.x---" -f " ....|.....| ....|.....|.....| ....|.xx.." -f " ....|.....| ....|.....|.....| ....|..xx." -f " ....|.....| ....|.....|.....| ....|-x..." -f " ....|.....| ....|x....|.....| ....|....." -f " xx..|.....| ....|.....|.....| ....|....." -f " ...x|....x| ...x|....x|.....| ....|....." \
-                                                                              -f " ....|.....| ....|.....|.....| ...x|...x-" -f " ....|.....| ....|.....|.....| xxxx|-----" -f " ....|.....| ....|.....|.....| x...|--x.." -f " ....|.....| ....|.....|.....| xx..|---x." -f " ....|....x| ...x|....x|....x| ....|....." -f " ....|.....| ...x|....x|....x| ...x|....."
-05.05: 17/24 solved  -d p05.05 -p "o-xxo|-xxx-|xXxxx|xXxXx|xxxXx|-xxx-|-oxo-" -f "...xx|...xx|...xx|...xx|.....|.....|....." -f ".....|.....|.....|xx...|xx...|xx...|xx..." -f "x....|xx...|xx...|xx...|xx...|x....|x...." -f "x....|x....|xx...|xx...|xx...|xx...|x...." -f "....x|...xx|...xx|...xx|...xx|....x|....x" -f "....x|....x|...xx|...xx|...xx|...xx|....x" -f ".....|.....|.....|.....|xxxx.|xxxx.|xxxx." -f ".xxxx|.xxxx|.xxxx|.....|.....|.....|....."
-05.06: 18/22 solved  -d p05.06 -p "ox_xo|xxxxx|-xXx-|xxxxx|-xXx-|xxxxx|ox_xo"
-05.07:   /63         -d p05.07 -p "o-x-o|oXXXo|oX-Xo| XXXo|oX-Xo|oXXXo|o-x-o"
-05.08: 20/23 solved  -d p05.08 -p "oxxxo|xxxx-|xxXxx|xxxx-|_xOxx|_xxxo|-x---" -f ".....|.....|.....|.....|x....|-x...|xx..." -f "x....|x....|x....|x....|x....|.....|....." -f ".....|x....|x....|x....|x....|x....|....." -f "x....|x....|x....|.....|x....|x....|....." -f "x....|.....|x....|x....|x....|x....|....." -f "x....|x....|.....|x....|x....|x....|....."
-05.09: 21/29 solved  -d p05.09 -p "ox-xo|-xxx-|xx-xx|xxoxx|xx-xx|-XXX-|oX-Xo" -f ".....|.....|.....|.....|.....|.....|..xx." -f ".....|.....|.....|.....|.....|.....|.xx.." -f ".....|.....|.....|.....|.....|xx...|x-x.." -f ".....|.....|.....|.....|.....|...xx|..x-x"
-05.10:   /52         -d p05.10 -p "ooooo|-xxx-|XXxXX|-XxX-|XXxXX|-xxx-|ooooo" -f ".....|x....|x....|x....|.....|.....|....." -f ".....|....x|....x|....x|.....|.....|....." -f ".....|.....|....x|....x|....x|.....|....." -f ".....|.....|.....|....x|....x|....x|....." -f ".....|.....|x....|x....|x....|.....|....." -f ".....|.....|.....|x....|x....|x....|....."
-05.11: 20/25 solved  -d p05.11 -p "oX-Xo|-xXx-|xxxxx|xo ox|xxxxx|-xXx-|oX-Xo"
-05.12: 20/26 solved  -d p05.12 -p "ox-xo| xxxx|_-Ox_|xxxxx|oxxxo| xxxx|_-O-_"
-05.13:   /54         -d p05.13 -p "oo-oo|xxxxx|xXXXx|-X X-|xXXXx|xxxxx|oo-oo"
-05.14: 11/16 solved  -d p05.14 -p "-xXo-|xoxXo|xxxxx|o_xxx|XxoXx|xx xo|--X--" -f ".xxx.|.....|.....|.....|.....|.....|....." -f ".....|.....|.....|.....|.....|.....|.xxx." -f "x....|x....|x....|x....|x....|.....|....." -f "xx...|xx...|xx...|xx...|.....|.....|....."
-05.15:   /36         -d p05.15 -p "-x-x-|oX-Xo|oXxXo|oXxXo|oXxXo|oX-Xo|-x-x-" -f "..xxx|..x.x|...xx|.....|.....|.....|....." -f "xxx..|x.x..|xx...|.....|.....|.....|....." -f ".....|.....|.....|.....|...xx|..x.x|..xxx" -f ".....|.....|.....|.....|xx...|x.x..|xxx.."
-05.16: 17/17 solved  -d p05.16 -p "o-x- |xxx-o|Xxxx |---x_|Xxxx |xxx-o|--x- " -f ".....|.....|.....|x....|x....|x....|....." -f ".....|.....|x....|x....|x....|.....|....." -f ".....|x....|x....|x....|.....|.....|....." -f ".....|.....|.....|....x|.....|.....|....." -f "...x.|...xx|...x.|...x-|.....|....x|....." -f ".....|...xx|...x.|...x-|...x.|....x|....." -f ".....|....x|...x.|...x-|...x.|...xx|....." -f ".....|....x|.....|...x-|...x.|...xx|...x."
-05.17:   /30         -d p05.17 -p "oXoXo|o-X-o|XxoxX|oXxXo|XXoXX|o-X-o|oXoXo" -f ".xx..|.....|.....|.....|.....|.....|....." -f "..xx.|.....|.....|.....|.....|.....|....." -f ".....|.....|.....|.....|.....|.....|..xx." -f ".....|.....|.....|.....|.....|.....|.xx.." -f ".....|....x|....x|....x|.....|.....|....." -f ".....|.....|....x|....x|....x|.....|....." -f ".....|.....|.....|....x|....x|....x|....." -f ".....|x....|x....|x....|.....|.....|....." \
-                                                                              -f ".....|.....|x....|x....|x....|.....|....." -f ".....|.....|.....|x....|x....|x....|....."
-05.18: 18/18 solved  -d p05.18 -p "_ -xo|_xx- |o xx-|xxxx |o Xx_|oxx- |_ -xo" -f ".....|x....|x....|x....|x....|x....|....." -f ".....|.....|.....|.....|....x|.....|....."
-05.19:   /35         -d p05.19 -p "-o-o-| - - |-XXX-|xxxxx|-XXX-| x x |oo oo"
-05.20:   /42         -d p05.20 -p "  ox-| oox-|ooxxx|xxxx-|xxXXX|-xXO-|-xX- " -f ".....|.....|.....|.....|.....|.....|..xx." -f ".....|.....|.....|.....|.....|...xx|...x." -f ".....|.....|.....|.....|....x|....x|....." -f "....x|....x|....x|....x|....x|.....|....."
-05.21: 18/23 solved  -d p05.21 -p "O-OoO|OXOXO|OOOOO|OOOXO|OOOOO|oO OO|OOoOO" -f "....x|.....|.....|.....|.....|.....|....." -f ".....|....x|.....|.....|.....|.....|....." -f ".....|.....|....x|.....|.....|.....|....." -f ".....|.....|.....|....x|.....|.....|....." -f ".....|.....|.....|.....|....x|.....|....." -f ".....|.....|.....|.....|.....|....x|....." -f ".....|.....|.....|.....|.....|.....|....x" -f ".xx..|.....|.....|.....|.....|.....|....." \
-                                                                              -f "..xx.|.....|.....|.....|.....|.....|....." -f ".....|x....|x....|.....|.....|.....|....." -f ".....|x....|.....|x....|.....|.....|....." -f ".....|x....|.....|.....|x....|.....|....." -f ".....|x....|.....|.....|.....|x....|....." -f ".....|.....|x....|x....|.....|.....|....." -f ".....|.....|x....|.....|x....|.....|....." -f ".....|.....|x....|.....|.....|x....|....." \
-                                                                              -f ".....|.....|.....|x....|x....|.....|....." -f ".....|.....|.....|x....|.....|x....|....." -f ".....|.....|.....|.....|x....|x....|....." -f ".....|.....|.....|.....|.....|.....|.xx.." -f ".....|.....|.....|.....|.....|.....|..xx." -f ".....|.....|.....|.....|.....|.....|.x.x." -f ".xxx.|.....|.....|.....|.....|.....|....."
-05.22: 23/25 solved  -d p05.22 -p "o-x-o|xx-xx|xxXxx|_xxx_|xxXxx|xx-xx|o-x-o" -f "x....|x....|x....|x....|.....|.....|....." -f "....x|....x|....x|....x|.....|.....|....." -f ".....|.....|.....|x....|x....|x....|x...." -f ".....|.....|.....|....x|....x|....x|....x" -f ".....|x....|x....|x....|x....|.....|....." -f ".....|....x|....x|....x|....x|.....|....." -f ".....|.....|x....|x....|x....|x....|....." -f ".....|.....|....x|....x|....x|....x|....."
-05.23: 12/12 solved  -d p05.23 -p "ox_xo|xxxxx|-x_x-|xxxxx|-x_x-|xxxxx|ox_xo"
-05.24:   /35         -d p05.24 -p "_xo- |-oox_|xxxx |oXoXo|xXXXx|xxxxx|o-X-o" -f ".....|....x|.....|.....|.....|.....|....." -f "...x.|...x.|.....|.....|.....|.....|....." -f "-x...|x....|.....|.....|.....|.....|....." -f "--x..|xx...|.....|.....|.....|.....|....." -f "---x.|xxx..|.....|.....|.....|.....|....." -f "-x...|-x...|x....|.....|.....|.....|....." -f "-x...|-x...|-x...|x....|.....|.....|....." -f "-x...|-x...|-x...|-x...|x....|.....|....." \
-                                                                              -f "-x...|-x...|-x...|-x...|-x...|x....|....." -f "-x...|-x...|-x...|-x...|-x...|-x...|x...."
-05.25:   /72         -d p05.25 -p "o-x-o|-xxx |oxxxo|oxxxo|xxxxx|XXXXX|O-X-O" -f "x....|x....|x....|x....|x....|x....|....." -f ".....|.....|....x|....x|....x|....x|....." -f ".....|.....|.....|.....|.....|....x|...x-" -f ".....|.....|.....|.....|.....|...xx|..x--" -f ".....|.....|.....|.....|.....|..xxx|.x---" -f ".....|.....|.....|.....|.....|x....|-x..." -f ".....|.....|.....|.....|.....|xx...|--x.." -f ".....|.....|.....|.....|.....|xxx..|---x." \
-                                                                              -f ".....|.....|.....|.....|.....|.....|.xx.." -f ".....|.....|.....|.....|.....|.....|..xx."
+# 05.01: 14/14 solved:
+  ./mulled.rb -d db/d05.01 -p " -   | o   |ox-__| x--_|ox  _| o   | -   " \
+  | tee solutions/s05.01
+# 05.02: 12/12 solved:
+  ./mulled.rb -d db/d05.02 -p "ox_xo| - - | x_x | x x | x_x | x x |ox_xo" \
+  | tee solutions/s05.02
+# 05.03: 17/18 solved:
+  ./mulled.rb -d db/d05.03 -p "-x-x-|-xXx-|xxxxx|ox xo|xxXxx|-xxx-|-xxx-" \
+  | tee solutions/s05.03
+# 05.04: 24/30 solved:
+  ./mulled.rb -d db/d05.04 -p " x_xo|ox-xo| xxxx|_xOxX|ox-xo| xxxx|_-O-_" \
+  -f " ....|.....| ....|.....|.....| ..xx|..x--" -f " ....|.....| ....|.....|.....| .xxx|.x---" \
+  -f " ....|.....| ....|.....|.....| ....|.xx.." -f " ....|.....| ....|.....|.....| ....|..xx." \
+  -f " ....|.....| ....|.....|.....| ....|-x..." -f " ....|.....| ....|x....|.....| ....|....." \
+  -f " xx..|.....| ....|.....|.....| ....|....." -f " ...x|....x| ...x|....x|.....| ....|....." \
+  -f " ....|.....| ....|.....|.....| ...x|...x-" -f " ....|.....| ....|.....|.....| xxxx|-----" \
+  -f " ....|.....| ....|.....|.....| x...|--x.." -f " ....|.....| ....|.....|.....| xx..|---x." \
+  -f " ....|....x| ...x|....x|....x| ....|....." -f " ....|.....| ...x|....x|....x| ...x|....." \
+  -f " ...x|.....| ...x|....x|....x| ....|....." -f " ...x|.....| ....|....x|....x| ...x|....." \
+  -f " xxxx|oxxxx| ....|.....|.....| ....|....." -f " ....|....x| ....|....x|....x| ...x|....." \
+  | tee solutions/s05.04
+# 05.05: 17/24 solved:
+  ./mulled.rb -d db/d05.05 -p "o-xxo|-xxx-|xXxxx|xXxXx|xxxXx|-xxx-|-oxo-" \
+  -f "...xx|...xx|...xx|...xx|.....|.....|....." -f ".....|.....|.....|xx...|xx...|xx...|xx..." \
+  -f "x....|xx...|xx...|xx...|xx...|x....|x...." -f "x....|x....|xx...|xx...|xx...|xx...|x...." \
+  -f "....x|...xx|...xx|...xx|...xx|....x|....x" -f "....x|....x|...xx|...xx|...xx|...xx|....x" \
+  -f ".....|.....|.....|.....|xxxx.|xxxx.|xxxx." -f ".xxxx|.xxxx|.xxxx|.....|.....|.....|....." \
+  | tee solutions/s05.05
+# 05.06: 18/22 solved:
+  ./mulled.rb -d db/d05.06 -p "ox_xo|xxxxx|-xXx-|xxxxx|-xXx-|xxxxx|ox_xo" \
+  | tee solutions/s05.06
+# 05.07:   /63       :
+  ./mulled.rb -d db/d05.07 -p "o-x-o|oXXXo|oX-Xo| XXXo|oX-Xo|oXXXo|o-x-o" \
+  | tee solutions/s05.07
+# 05.08: 20/23 solved:
+  ./mulled.rb -d db/d05.08 -p "oxxxo|xxxx-|xxXxx|xxxx-|_xOxx|_xxxo|-x---" \
+  -f ".....|.....|.....|.....|x....|-x...|xx..." -f "x....|x....|x....|x....|x....|.....|....." \
+  -f ".....|x....|x....|x....|x....|x....|....." -f "x....|x....|x....|.....|x....|x....|....." \
+  -f "x....|.....|x....|x....|x....|x....|....." -f "x....|x....|.....|x....|x....|x....|....." \
+  | tee solutions/s05.08
+# 05.09: 20/29 solved:
+  ./mulled.rb -d db/d05.09 -p "ox-xo|-xxx-|xx-xx|xxoxx|xx-xx|-XXX-|oX-Xo" \
+  -f ".....|.....|.....|.....|.....|.....|..xx." -f ".....|.....|.....|.....|.....|.....|.xx.." \
+  -f ".....|.....|.....|.....|.....|xx...|x-x.." -f ".....|.....|.....|.....|.....|...xx|..x-x" \
+  | tee solutions/s05.09
+# 05.10:   /52       :
+  ./mulled.rb -d db/d05.10 -p "ooooo|-xxx-|XXxXX|-XxX-|XXxXX|-xxx-|ooooo" \
+  -f ".....|x....|x....|x....|.....|.....|....." -f ".....|....x|....x|....x|.....|.....|....." \
+  -f ".....|.....|....x|....x|....x|.....|....." -f ".....|.....|.....|....x|....x|....x|....." \
+  -f ".....|.....|x....|x....|x....|.....|....." -f ".....|.....|.....|x....|x....|x....|....." \
+  | tee solutions/s05.10
+# 05.11: 24/25 solved:
+  ./mulled.rb -d db/d05.11 -p "oX-Xo|-xXx-|xxxxx|xo ox|xxxxx|-xXx-|oX-Xo" \
+  -f "x-x..|xx...|.....|.. ..|.....|.....|....." -f "..x-x|...xx|.....|.. ..|.....|.....|....." \
+  -f "x--x.|xxx..|.....|.. ..|.....|.....|....." -f ".x--x|..xxx|.....|.. ..|.....|.....|....." \
+  -f "x---x|xxxx.|.....|.. ..|.....|.....|....." -f "x---x|.xxxx|.....|.. ..|.....|.....|....." \
+  -f ".xx..|.....|.....|.. ..|.....|.....|....." -f "..xx.|.....|.....|.. ..|.....|.....|....." \
+  -f ".....|.....|.....|.. ..|.....|...xx|..x-x" -f ".....|.....|.....|.. ..|.....|xx...|x-x.." \
+  -f ".....|.....|.....|.. ..|.....|..xxx|.x--x" -f ".....|.....|.....|.. ..|.....|xxx..|x--x." \
+  -f ".....|.....|.....|.. ..|.....|.xxxx|x---x" -f ".....|.....|.....|.. ..|.....|xxxx.|x---x" \
+  -f ".....|.....|.....|.. ..|.....|.....|.xx.." -f ".....|.....|.....|.. ..|.....|.....|..xx." \
+  | tee solutions/s05.11
+# 05.12: 22/26 solved:
+  ./mulled.rb -d db/d05.12 -p "ox-xo| xxxx|_-Ox_|xxxxx|oxxxo| xxxx|_-O-_" \
+  -f ".....| ....|x....|.....|.....| ....|....." -f ".....| ....|.....|.....|.....| ....|-x..." \
+  -f ".....| ....|.....|.....|.....| x...|--x.." -f ".....| ....|.....|.....|.....| xx..|---x." \
+  -f ".....| ....|.....|.....|.....| ...x|...x-" -f ".....| ....|.....|.....|.....| ..xx|..x--" \
+  -f ".....| ....|.....|.....|.....| .xxx|.x---" -f ".....| ....|.....|.....|.....| ....|..xx." \
+  | tee solutions/s05.12
+# 05.13:   /54       :
+  ./mulled.rb -d db/d05.13 -p "oo-oo|xxxxx|xXXXx|-X X-|xXXXx|xxxxx|oo-oo" \
+  | tee solutions/s05.13
+# 05.14: 11/16 solved:
+  ./mulled.rb -d db/d05.14 -p "-xXo-|xoxXo|xxxxx|o_xxx|XxoXx|xx xo|--X--" \
+  -f ".xxx.|.....|.....|.....|.....|.....|....." -f ".....|.....|.....|.....|.....|.....|.xxx." \
+  -f "x....|x....|x....|x....|x....|.....|....." -f "xx...|xx...|xx...|xx...|.....|.....|....." \
+  | tee solutions/s05.14
+# 05.15:   /36       :
+  ./mulled.rb -d db/d05.15 -p "-x-x-|oX-Xo|oXxXo|oXxXo|oXxXo|oX-Xo|-x-x-" \
+  -f "..xxx|..x.x|...xx|.....|.....|.....|....." -f "xxx..|x.x..|xx...|.....|.....|.....|....." \
+  -f ".....|.....|.....|.....|...xx|..x.x|..xxx" -f ".....|.....|.....|.....|xx...|x.x..|xxx.." \
+  | tee solutions/s05.15
+# 05.16: 17/17 solved:
+  ./mulled.rb -d db/d05.16 -p "o-x- |xxx-o|Xxxx |---x_|Xxxx |xxx-o|--x- " \
+  -f ".....|.....|.....|x....|x....|x....|....." -f ".....|.....|x....|x....|x....|.....|....." \
+  -f ".....|x....|x....|x....|.....|.....|....." -f ".....|.....|.....|....x|.....|.....|....." \
+  -f "...x.|...xx|...x.|...x-|.....|....x|....." -f ".....|...xx|...x.|...x-|...x.|....x|....." \
+  -f ".....|....x|...x.|...x-|...x.|...xx|....." -f ".....|....x|.....|...x-|...x.|...xx|...x." \
+  | tee solutions/s05.16
+# 05.17:   /30       :
+  ./mulled.rb -d db/d05.17 -p "oXoXo|o-X-o|XxoxX|oXxXo|XXoXX|o-X-o|oXoXo" \
+  -f ".xx..|.....|.....|.....|.....|.....|....." -f "..xx.|.....|.....|.....|.....|.....|....." \
+  -f ".....|.....|.....|.....|.....|.....|..xx." -f ".....|.....|.....|.....|.....|.....|.xx.." \
+  -f ".....|....x|....x|....x|.....|.....|....." -f ".....|.....|....x|....x|....x|.....|....." \
+  -f ".....|.....|.....|....x|....x|....x|....." -f ".....|x....|x....|x....|.....|.....|....." \
+  -f ".....|.....|x....|x....|x....|.....|....." -f ".....|.....|.....|x....|x....|x....|....." \
+  -f "x....|.....|x....|x....|.....|x....|....." -f "x....|.....|x....|x....|.....|.....|x...." \
+  -f ".....|x....|.....|x....|x....|.....|x...." -f "x....|.....|.....|x....|x....|.....|x...." \
+  -f "....x|.....|.....|....x|....x|.....|....x" -f ".....|....x|.....|....x|....x|.....|....x" \
+  -f "....x|.....|....x|....x|.....|.....|....x" -f "....x|.....|....x|....x|.....|....x|....." \
+  | tee solutions/s05.17
+# 05.18: 18/18 solved:
+  ./mulled.rb -d db/d05.18 -p "_ -xo|_xx- |o xx-|xxxx |o Xx_|oxx- |_ -xo" \
+  -f ".....|x....|x....|x....|x....|x....|....." -f ".....|.....|.....|.....|....x|.....|....." \
+  | tee solutions/s05.18
+# 05.19: 21/35 solved:
+  ./mulled.rb -d db/d05.19 -p "-o-o-| - - |-XXX-|xxxxx|-XXX-| x x |oo oo" \
+  -f ".....| . . |.....|.....|.....| . . |.. xo" -f ".....| . . |.....|.....|.....| . . |ox .." \
+  -f ".....| . . |.....|.....|...xx| . x |.. x." -f ".....| . . |.....|.....|xx...| x . |.x .." \
+  -f "xx...| x . |xx...|.....|.....| . . |.. .." -f "...xx| . x |...xx|.....|.....| . . |.. .." \
+  | tee solutions/s05.19
+# 05.20:   /42       :
+  ./mulled.rb -d db/d05.20 -p "  ox-| oox-|ooxxx|xxxx-|xxXXX|-xXO-|-xX- " \
+  -f ".....|.....|.....|.....|.....|.....|..xx." -f ".....|.....|.....|.....|.....|...xx|...x." \
+  -f ".....|.....|.....|.....|....x|....x|....." -f "....x|....x|....x|....x|....x|.....|....." \
+  | tee solutions/s05.20
+# 05.21: 18/23 solved:
+  ./mulled.rb -d db/d05.21 -p "O-OoO|OXOXO|OOOOO|OOOXO|OOOOO|oO OO|OOoOO" \
+  -f "....x|.....|.....|.....|.....|.....|....." -f ".....|....x|.....|.....|.....|.....|....." \
+  -f ".....|.....|....x|.....|.....|.....|....." -f ".....|.....|.....|....x|.....|.....|....." \
+  -f ".....|.....|.....|.....|....x|.....|....." -f ".....|.....|.....|.....|.....|....x|....." \
+  -f ".....|.....|.....|.....|.....|.....|....x" -f ".xx..|.....|.....|.....|.....|.....|....." \
+  -f "..xx.|.....|.....|.....|.....|.....|....." -f ".....|x....|x....|.....|.....|.....|....." \
+  -f ".....|x....|.....|x....|.....|.....|....." -f ".....|x....|.....|.....|x....|.....|....." \
+  -f ".....|x....|.....|.....|.....|x....|....." -f ".....|.....|x....|x....|.....|.....|....." \
+  -f ".....|.....|x....|.....|x....|.....|....." -f ".....|.....|x....|.....|.....|x....|....." \
+  -f ".....|.....|.....|x....|x....|.....|....." -f ".....|.....|.....|x....|.....|x....|....." \
+  -f ".....|.....|.....|.....|x....|x....|....." -f ".....|.....|.....|.....|.....|.....|.xx.." \
+  -f ".....|.....|.....|.....|.....|.....|..xx." -f ".....|.....|.....|.....|.....|.....|.x.x." \
+  -f ".xxx.|.....|.....|.....|.....|.....|....." \
+  | tee solutions/s05.21
+# 05.22: 23/25 solved:
+  ./mulled.rb -d db/d05.22 -p "o-x-o|xx-xx|xxXxx|_xxx_|xxXxx|xx-xx|o-x-o" \
+  -f "x....|x....|x....|x....|.....|.....|....." -f "....x|....x|....x|....x|.....|.....|....." \
+  -f ".....|.....|.....|x....|x....|x....|x...." -f ".....|.....|.....|....x|....x|....x|....x" \
+  -f ".....|x....|x....|x....|x....|.....|....." -f ".....|....x|....x|....x|....x|.....|....." \
+  -f ".....|.....|x....|x....|x....|x....|....." -f ".....|.....|....x|....x|....x|....x|....." \
+  | tee solutions/s05.22
+# 05.23: 12/12 solved:
+  ./mulled.rb -d db/d05.23 -p "ox_xo|xxxxx|-x_x-|xxxxx|-x_x-|xxxxx|ox_xo" \
+  | tee solutions/s05.23
+# 05.24:   /35       :
+  ./mulled.rb -d db/d05.24 -p "_xo- |-oox_|xxxx |oXoXo|xXXXx|xxxxx|o-X-o" \
+  -f ".....|....x|.....|.....|.....|.....|....." -f "...x.|...x.|.....|.....|.....|.....|....." \
+  -f "-x...|x....|.....|.....|.....|.....|....." -f "--x..|xx...|.....|.....|.....|.....|....." \
+  -f "---x.|xxx..|.....|.....|.....|.....|....." -f "-x...|-x...|x....|.....|.....|.....|....." \
+  -f "-x...|-x...|-x...|x....|.....|.....|....." -f "-x...|-x...|-x...|-x...|x....|.....|....." \
+  -f "-x...|-x...|-x...|-x...|-x...|x....|....." -f "-x...|-x...|-x...|-x...|-x...|-x...|x...." \
+  | tee solutions/s05.24
+# 05.25:   /72       :
+  ./mulled.rb -d db/d05.25 -p "o-x-o|-xxx |oxxxo|oxxxo|xxxxx|XXXXX|O-X-O" \
+  -f "x....|x....|x....|x....|x....|x....|....." -f ".....|.....|....x|....x|....x|....x|....." \
+  -f ".....|.....|.....|.....|.....|....x|...x-" -f ".....|.....|.....|.....|.....|...xx|..x--" \
+  -f ".....|.....|.....|.....|.....|..xxx|.x---" -f ".....|.....|.....|.....|.....|x....|-x..." \
+  -f ".....|.....|.....|.....|.....|xx...|--x.." -f ".....|.....|.....|.....|.....|xxx..|---x." \
+  -f ".....|.....|.....|.....|.....|.....|.xx.." -f ".....|.....|.....|.....|.....|.....|..xx." \
+  | tee solutions/s05.25

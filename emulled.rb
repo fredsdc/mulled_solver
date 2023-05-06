@@ -442,7 +442,7 @@ until solved do
       exit
     end
 
-    STDERR.print "\r#{line}\r-- Procurando solução (?/?) -- " % [miteract + 1, miteract + biteract]
+    STDERR.print "\r#{line}\r-- Procurando solução (%d/%d) -- " % [miteract + 1, miteract + biteract]
     biteract -= 1
 
     edb.query("SELECT * FROM puzzle_es WHERE iteract = ?", miteract).each do |i|

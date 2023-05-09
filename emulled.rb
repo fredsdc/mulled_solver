@@ -165,10 +165,10 @@ def calc_solution wdb, puzzle, id = 0
   solution
 end
 
-def calc_middle_solution edb, wdb
-  solution = [ edb.query("SELECT * FROM puzzle_es WHERE solved = 1 LIMIT 1").first ]
+def calc_middle_solution idb, wdb
+  solution = [ idb.query("SELECT * FROM puzzle_es WHERE solved = 1 LIMIT 1").first ]
   while solution.last[:iteract] > 0
-    solution += [ edb.query("SELECT * FROM puzzle_es WHERE id = ?", solution.last[:ref]).first ]
+    solution += [ idb.query("SELECT * FROM puzzle_es WHERE id = ?", solution.last[:ref]).first ]
   end
   solution.reverse
 end
@@ -197,14 +197,17 @@ end
 
 def iteract_backs edb, iteract
   edb.execute("BEGIN")
+  j = /-/
+  l = /_/
+  k = iteract + 1
   edb.query("SELECT item FROM backs WHERE iteract = ?", iteract).each do |i|
-    arry = solve(i[:item].gsub(/_/, "-")).
-      map!{|s| [s.gsub(/-/, "_"), iteract + 1]}.
-      reject{|s| edb.query("SELECT id FROM backs WHERE item = ? AND iteract = ? LIMIT 1", s[0], s[1]).any?}
+    arry = solve(i[:item].gsub(l, "-")).
+      map!{|s| [s.gsub(j, "_"), k]}.
+      reject{|s| edb.query("SELECT id FROM backs WHERE item = ? AND iteract = ? LIMIT 1", s[0], k).any?}
     edb.execute_multi("INSERT INTO backs(item, iteract) VALUES (?, ?)", arry)
   end
   edb.execute("COMMIT")
-  iteract + 1
+  k
 end
 
 # Main program
@@ -282,6 +285,7 @@ else
   if nomemory || tdb.tables.include?("puzzles") && tdb.query("SELECT * FROM puzzles WHERE solved = 1").any?
     wdb = tdb
     edb = Extralite::Database.new(filename + "e")
+    idb = Extralite::Database.new(filename + "i")
   else
     wdb = Extralite::Database.new("")
     edb = Extralite::Database.new("")
@@ -361,6 +365,7 @@ STDERR.puts "-- Puzzle: \"#{puzzle}\" --"
 show_solving puzzle
 if deadends_fixed.any?
   STDERR.puts "-- Deadends: --"
+  STDERR.puts "\"" + deadends_fixed.sort.reverse.join("\"\n\"") + "\""
   STDERR.puts ""
   STDERR.puts deadends_fixed.sort.reverse.map{|s| s.split("|")}.transpose.map{|a| a.join("  ")}
   STDERR.puts ""
@@ -387,18 +392,16 @@ end
 unless edb.tables.include?("backs")
   edb.execute("CREATE TABLE        backs (id INTEGER PRIMARY KEY, item TEXT, iteract INTEGER)")
   edb.execute("CREATE INDEX        backs_item_index        ON backs(item)")
+  edb.execute("CREATE INDEX        backs_iteract_index     ON backs(iteract)")
   edb.execute("INSERT INTO         backs(item, iteract)    VALUES (?, 0)", sol.gsub(/-/, "_"))
 end
 unless edb.tables.include?("puzzle_es")
-  edb.execute("CREATE TABLE        puzzle_es (id INTEGER PRIMARY KEY, ref INTEGER, item TEXT, citem TEXT, solved BOOL, iteract INTEGER)")
-  edb.execute("CREATE INDEX        puzzle_es_item_index    ON puzzle_es(item)")
+  edb.execute("CREATE TABLE        puzzle_es (id INTEGER PRIMARY KEY, ref INTEGER, item TEXT, citem TEXT, solved BOOL)")
   edb.execute("CREATE INDEX        puzzle_es_citem_index   ON puzzle_es(citem)")
-  edb.execute("CREATE INDEX        puzzle_es_iteract_index ON puzzle_es(iteract)")
-  edb.execute("CREATE INDEX        puzzle_es_solved_index  ON puzzle_es(solved)")
 end
 
 # Popula cópia da última iteração
-i = edb.query("SELECT COUNT(id) AS count FROM puzzle_es WHERE iteract = 99").first[:count]
+i = edb.query("SELECT max(id) AS count FROM puzzle_es").first[:count] || 0
 if i < (iteract_index - last_iteract_index)
   # index_now = índice do item anterior
   index_now = last_iteract_index + i
@@ -408,7 +411,7 @@ if i < (iteract_index - last_iteract_index)
     top = (index_now + turn) > iteract_index ? iteract_index : (index_now + turn)
     edb.execute("BEGIN")
     wdb.query("SELECT * FROM puzzles WHERE id > ? and id <= ?", index_now, top).each do |i|
-      edb.execute("INSERT INTO puzzle_es(ref, item, citem, solved, iteract) VALUES (?, ?, ?, ?, 99)",
+      edb.execute("INSERT INTO puzzle_es(ref, item, citem, solved) VALUES (?, ?, ?, ?)",
       i[:id], i[:item], i[:item].gsub(/[x-]/, "_"), i[:solved])
     end
     edb.execute("COMMIT")
@@ -421,7 +424,12 @@ end
 biteract = edb.query("SELECT max(iteract) as iteract from backs").first[:iteract]
 biteract = iteract_backs(edb, biteract) if biteract == 0
 
-solved = edb.query("SELECT id FROM puzzle_es WHERE solved = 1").any?
+if wdb.query("SELECT id FROM puzzles WHERE solved = 1 LIMIT 1").any?
+  puts "\r#{line}\n-- Already solved, use muddle.rb to show solution --"
+  exit
+end
+
+solved = idb.tables.include?("puzzles") ? idb.query("SELECT id FROM puzzle_es WHERE solved = 1 LIMIT 1").any? : false
 
 # Main loop
 until solved do
@@ -429,51 +437,63 @@ until solved do
   STDERR.puts "\r#{line}\r-- Iteração %d (%d items) -- " % [biteract, edb.query("SELECT COUNT(id) AS count FROM backs WHERE iteract = ?", biteract).first[:count]]
 
   # # Populate first iteraction of puzzle_es
-  edb.execute("DELETE FROM puzzle_es WHERE iteract < 99")
-  edb.query("SELECT p.* FROM backs b JOIN puzzle_es p ON b.item = p.citem WHERE b.iteract = ? and p.iteract = 99", biteract).each do |i|
-    edb.execute("INSERT INTO puzzle_es(ref, item, citem, solved, iteract) VALUES (?, ?, ?, ?, 0)", i[:ref], i[:item], i[:citem], i[:solved])
+
+  File.new(idb.filename, "w").close
+  idb.execute("CREATE TABLE        puzzle_es (id INTEGER PRIMARY KEY, ref INTEGER, item TEXT, solved BOOL, iteract INTEGER)")
+  idb.execute("CREATE INDEX        puzzle_es_item_index    ON puzzle_es(item)")
+  idb.execute("CREATE INDEX        puzzle_es_iteract_index ON puzzle_es(iteract)")
+  idb.execute("CREATE INDEX        puzzle_es_solved_index  ON puzzle_es(solved)")
+
+  STDERR.print "\r#{line}\r-- Populando solução (0/%d) -- " % biteract
+  j = edb.query("SELECT max(id) as id FROM puzzle_es").first[:id]
+
+  idb.execute("BEGIN")
+  edb.query("SELECT p.ref, p.item FROM backs b JOIN puzzle_es p ON b.item = p.citem WHERE b.iteract = ?", biteract).each do |i|
+    idb.execute("INSERT INTO puzzle_es(ref, item, solved, iteract) VALUES (?, ?, 0, 0)", i[:ref], i[:item])
   end
+  idb.execute("COMMIT")
   miteract=0
 
   while biteract > 0
     if trap
-      edb.execute("COMMIT") rescue nil
-      dump_database edb, filename, solved, append
+      dump_database edb, edb.filename, solved, append
       exit
     end
 
-    STDERR.print "\r#{line}\r-- Procurando solução (%d/%d) -- " % [miteract + 1, miteract + biteract]
+    STDERR.print "\r#{line}\r-- Procurando solução (%d/%d) (%d items) -- " % [miteract + 1, miteract + biteract, (idb.query("SELECT MAX(id) - MIN(id) + 1 as count FROM puzzle_es WHERE iteract = ?", miteract).first[:count] || 0)]
     biteract -= 1
 
-    edb.query("SELECT * FROM puzzle_es WHERE iteract = ?", miteract).each do |i|
+    idb.execute("BEGIN")
+    idb.query("SELECT * FROM puzzle_es WHERE iteract = ?", miteract).each do |i|
       arry = solve(i[:item]).
         reject{|s|
           s.match?(deadends_fixeds) ||
           edb.query("SELECT id FROM backs WHERE item = ? AND iteract = ? LIMIT 1", s.gsub(/[x-]/, "_"), biteract).empty? ||
-          (norev && edb.query("SELECT id FROM puzzle_es WHERE item = ? and iteract < 99 LIMIT 1", rev(s)).any?) ||
+          (norev && idb.query("SELECT id FROM puzzle_es WHERE item = ? LIMIT 1", rev(s)).any?) ||
           (norev && wdb.query("SELECT id FROM puzzles WHERE item = ? LIMIT 1", rev(s)).any?) ||
-          (noturn && edb.query("SELECT id FROM puzzle_es WHERE item = ? and iteract < 99 LIMIT 1", s.reverse).any?) ||
+          (noturn && idb.query("SELECT id FROM puzzle_es WHERE item = ? LIMIT 1", s.reverse).any?) ||
           (noturn && wdb.query("SELECT id FROM puzzles WHERE item = ? LIMIT 1", s.reverse).any?) ||
-          (noflip && edb.query("SELECT id FROM puzzle_es WHERE item = ? and iteract < 99 LIMIT 1", flip(s)).any?) ||
-          (noflip && wdb.query("SELECT id FROM puzzles WHERE item = ? LIMIT 1", flip(s)).any?)
+          (noflip && idb.query("SELECT id FROM puzzle_es WHERE item = ? LIMIT 1", flip(s)).any?) ||
+          (noflip && wdb.query("SELECT id FROM puzzles WHERE item = ? LIMIT 1", flip(s)).any?) ||
+          idb.query("SELECT id FROM puzzle_es WHERE item = ? LIMIT 1", s).any? ||
+          wdb.query("SELECT id FROM puzzles WHERE item = ? LIMIT 1", s).any?
         }.
-        select{|i| edb.query("SELECT id FROM puzzle_es WHERE item = ? LIMIT 1", i[1]).empty?}.
-        map{|s| [ i[:id], s, s.gsub(/[x-]/, "_"), sol == s.gsub(/x/,"-") ? solved = true : false, miteract + 1 ]}
-      edb.execute_multi("INSERT INTO puzzle_es(ref, item, citem, solved, iteract) VALUES (?, ?, ?, ?, ?)", arry)
+        map{|s| [ i[:id], s, sol == s.gsub(/x/,"-") ? solved = true : false, miteract + 1 ]}
+      idb.execute_multi("INSERT INTO puzzle_es(ref, item, solved, iteract) VALUES (?, ?, ?, ?)", arry)
     end
+    idb.execute("COMMIT")
     miteract += 1
   end
 
-  solved = edb.query("SELECT id FROM puzzle_es WHERE solved = 1").any?
+  solved = idb.query("SELECT id FROM puzzle_es WHERE solved = 1").any?
   unless solved
     STDERR.print "\r#{line}\r-- Preparando iteração -- "
-    biteract = edb.query("SELECT max(iteract) as iteract from backs").first[:iteract]
-    biteract = iteract_backs(edb, biteract)
+    biteract = iteract_backs(edb, miteract)
   end
 end
 
 # Mostra solução
-solution = calc_middle_solution edb, wdb
+solution = calc_middle_solution idb, wdb
 ref = solution.shift[:ref]
 solution = calc_solution(wdb, puzzle, ref) + solution
 show_solution solution

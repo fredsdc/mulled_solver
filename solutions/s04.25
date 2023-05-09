@@ -1,0 +1,20 @@
+-- Puzzle: "O-X-O|XXXXX|xxxxx|oxxxo|oxxxo|o-x-o" --
+-- Solução: --
+0      1      2      3      4      5      6      7      8      9      10     11     12     13     14     15     16     17     18     19     20
+
+o-x-o  o-xo-  o-xo-  o-xo-  o-xo-  o-xo-  o-xo-  o-xo-  o-xo-  o-xo-  o-x--  o-xo-  --xo-  --xo-  -oxo-  -oxo-  --oxo  -xoxo  -xoxo  -xoxo  oxoxo
+xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxox  xxx-x  oxx-x  -oxxx  -xxxx  -xxxx  -xxxx  -oxxx  o-xxx  o-xxx  --xxx
+xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx
+oxxxo  oxxxo  oxxxo  oxxxo  oxxxo  oxxxo  oxxxo  oxxxo  oxxx-  -oxxx  -oxxx  -oxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx
+oxxxo  oxxxo  oxxxo  oxxx-  oxxx-  -oxxx  ooxxx  ooxxx  ooxxo  ooxxo  ooxxo  ooxxo  ooxxo  ooxxo  o-xxo  -oxxo  -oxxo  -oxxo  -oxxo  -oxxo  -oxxo
+o-x-o  o-x-o  o-xo-  o-xoo  oxoo-  oxoo-  -xoo-  xoo--  xoo-x  xoo-x  xooxx  xooxx  xooxx  xooxx  xooxx  xooxx  xooxx  x-oxx  x-oxx  xo-xx  xo-xx
+
+21     22     23     24     25     26     27     28     29     30     31     32     33     34     35     36     37     38     39     40     41
+
+oxoxo  oxoxo  oxoxo  oxoxo  oxoxo  oxox-  oxox-  oxox-  oxox-  ox-x-  oxox-  oxox-  ox-x-  ox-x-  ox-x-  oxox-  oxox-  oxox-  oxoxo  oxoxo  oxoxo
+-oxxx  o-xxx  ooxxx  ooxxx  ooxxx  ooxxo  ooxxo  ooxxo  ooxxo  oooxo  oo-xo  ooxo-  oooo-  o-ooo  ooooo  oo-oo  o-ooo  ooooo  oooo-  o-ooo  ooooo
+xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  x-xxx
+xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  x-xxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  xoxxx  x-xxx  x-xxx  x-xxx  x-xxx
+-oxxo  -oxxo  --xxo  -xxo-  xxo--  xxo-x  xoo-x  x-o-x  xo--x  xox-x  xox-x  xox-x  xox-x  xox-x  x-x-x  x-x-x  x-x-x  x-x-x  x-x-x  x-x-x  x-x-x
+x--xx  x--xx  x--xx  x--xx  x--xx  x--xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xx-xx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx  xxxxx
+

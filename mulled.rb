@@ -380,6 +380,7 @@ STDERR.puts "-- Puzzle: \"#{puzzle}\" --"
 show_solving puzzle
 if deadends_fixed.any?
   STDERR.puts "-- Deadends: --"
+  STDERR.puts "\"" + deadends_fixed.sort.reverse.join("\"\n\"") + "\""
   STDERR.puts ""
   STDERR.puts deadends_fixed.sort.reverse.map{|s| s.split("|")}.transpose.map{|a| a.join("  ")}
   STDERR.puts ""

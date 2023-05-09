@@ -1,0 +1,12 @@
+-- Puzzle: "oXoXo|o-X-o|XxoxX|oXxXo|XXoXX|o-X-o|oXoXo" --
+-- Solução: --
+0      1      2      3      4      5      6      7      8      9      10     11     12     13     14     15     16     17     18
+
+oxoxo  oxoxo  oxoxo  oxoxo  oxoxo  oxoxo  oxoxo  oxoxo  oxoxo  -xoxo  xoxo-  xoxo-  xoxo-  xoxox  xoxox  xoxox  xoxox  xoxox  xoxox
+o-x-o  o-xo-  o-xo-  o-xox  o-xox  o-xox  o-xox  o-xox  o-xox  o-xox  o-xox  o-xox  ooxox  ooxox  oox-x  oox-x  o-oxx  o-oxx  --oxx
+xxoxx  xxoxx  xxoxx  xxoxo  xxoxo  xxoxo  xxoxo  xxoxo  xxox-  oxox-  oxox-  -oxox  -xxox  -xxoo  -xxoo  -xxoo  -xxoo  -xx-o  oxx-o
+oxxxo  oxxxo  oxxxo  oxxxx  oxxxx  -xxxx  oxxxx  oxxxx  oxxxo  xxxxo  xxxxo  xxxxo  xoxxo  xoxxx  xoxox  xoxox  xoxox  xoxox  xoxox
+xxoxx  xxoxx  xxoxx  xxoxo  xxoxo  oxoxo  -xoxo  xoxo-  xoxox  ooxox  ooxox  ooxox  ooxox  ooxoo  ooxxo  ooxxo  ooxxo  ooxoo  ooxoo
+o-x-o  o-x-o  -ox-o  -ox-o  -ox-o  xox-o  xox-o  xox-o  xox-o  xox-o  xox-o  xox-o  x-x-o  x-x--  x-xo-  xxo--  xxo--  xxox-  xxox-
+oxoxo  oxoxo  oxoxo  oxox-  -oxox  -oxox  -oxox  -oxox  -oxox  xoxox  xoxox  xoxox  xoxox  xoxox  xoxox  xoxox  xoxox  xoxox  xoxox
+

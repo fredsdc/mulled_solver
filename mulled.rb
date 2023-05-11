@@ -531,7 +531,8 @@ else
       if current_puzzle[:id] % 100000 == 0
         wdb.execute("COMMIT")
         iteract_percentage = (current_puzzle[:id] - last_iteract_index) * 100 / (iteract_index - last_iteract_index) + 1
-        dump_database wdb, filename, solved, append, (quiet ? "" : "%d%% " % iteract_percentage)
+        growth = Float(wdb.query("SELECT MAX(id) AS id FROM puzzles").first[:id] - iteract_index) * 100 / (current_puzzle[:id] - last_iteract_index) - 100
+        dump_database wdb, filename, solved, append, (quiet ? "" : "%d%% %+.5f%% " % [iteract_percentage, growth])
         wdb.execute("BEGIN")
       end
     end
